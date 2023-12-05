@@ -6,6 +6,8 @@ public class GameManagement : MonoBehaviour
 {
     enum State
     {
+        Test,
+
         //piecePositionに初期値を入れる
         Init,
         //マウスで駒を置く場所を選択
@@ -19,11 +21,14 @@ public class GameManagement : MonoBehaviour
     }
     State state = State.Init;
     private BoardManagement boardManagement;
+    public Vector2Int cellpos;
+    private int playerTurn;
 
     // Start is called before the first frame update
     void Start()
     {
-        Debug.Log(state);
+        state = State.Test;
+        boardManagement = GetComponent<BoardManagement>();
     }
 
     // Update is called once per frame
@@ -32,40 +37,53 @@ public class GameManagement : MonoBehaviour
         switch (state)
         {
             case State.Init:
-                if (Input.GetMouseButtonUp(0))
-                {
-                    Debug.Log(state);
-                    boardManagement.Init();
-                    state = State.Selection;
-                }
+                Debug.Log(state);
+                boardManagement.Init();
+                state = State.Selection;
                 break;
             case State.Selection:
                 if (Input.GetMouseButtonUp(0))
                 {
                     Debug.Log(state);
+                    Vector3? cellPos3 = null;
+                    if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hit))
+                    {
+                        cellPos3 = hit.collider.gameObject.transform.position;
+                    }
+                    if (cellPos3 is null)
+                    {
+                        break;
+                    }
+                    cellpos = FunctionStorage.Vector3ToVector2(cellPos3.Value);
+                    Debug.Log((int)(-1+0.5f));
+                    boardManagement.Intermediary(cellpos);
                     state = State.Judgement;
                 }
                 break;
             case State.Judgement:
-                if (Input.GetMouseButtonUp(0))
+                if(boardManagement.Judge(playerTurn))
                 {
-                    Debug.Log(state);
+                    Debug.Log("ジャッジ通ったよ");
                     state = State.Arrangement;
+                }
+                else
+                {
+                    Debug.Log("ジャッジ通ってないよ");
+                    state = State.Selection;
                 }
                 break;
             case State.Arrangement:
-                if (Input.GetMouseButtonUp(0))
-                {
-                    Debug.Log(state);
-                    state = State.Change;
-                }
+                /*
+                 * Arrangenment関数を作って実行する
+                 */
+                Debug.Log("a");
+                boardManagement.Arrangement(playerTurn);
+                state = State.Change;
                 break;
             case State.Change:
-                if (Input.GetMouseButtonUp(0))
-                {
-                    Debug.Log(state);
-                    state = State.Selection;
-                }
+                playerTurn += 1;
+                boardManagement.BoardPrint();
+                state = State.Selection;
                 break;
         }
 
