@@ -183,4 +183,29 @@ public class BoardManagement : MonoBehaviour
         Debug.Log(allResults);
         return allResults;
     }
+
+    void GeneratePiece()
+    {
+        GameObject obj;
+
+        foreach (GameObject destroyPiece in GameObject.FindGameObjectsWithTag("osero"))
+        {
+            Destroy(destroyPiece);
+        }
+        for (int y = 0; y < piecePosition.GetLength(0); y++)
+        {
+            for (int x = 0; x < piecePosition.GetLength(1); x++)
+            {
+                if (piecePosition[y, x] != 0)
+                {
+                    obj = Instantiate(FunctionStorage.piece);
+                    obj.tag = "osero";
+                }
+                else
+                {
+                    obj = Instantiate(FunctionStorage.nullObject);
+                }
+            }
+        }
+    }
 }
