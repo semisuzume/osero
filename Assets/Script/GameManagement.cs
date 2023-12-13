@@ -27,7 +27,7 @@ public class GameManagement : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        state = State.Test;
+        //state = State.Test;
         boardManagement = GetComponent<BoardManagement>();
     }
 
@@ -76,7 +76,6 @@ public class GameManagement : MonoBehaviour
                 /*
                  * ArrangenmentŠÖ”‚ğì‚Á‚ÄÀs‚·‚é
                  */
-                Debug.Log("a");
                 boardManagement.Arrangement(playerTurn);
                 state = State.Change;
                 break;
