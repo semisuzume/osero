@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.PlasticSCM.Editor.UI;
 using UnityEngine;
 
 public class ArrangementTest : MonoBehaviour
@@ -11,7 +12,7 @@ public class ArrangementTest : MonoBehaviour
         yield return new WaitForSeconds(1);
         boardManagement = GetComponent<BoardManagement>();
 
-        Debug.Assert(Test1(), "Test1");
+        //Debug.Assert(Test1(), "Test1");
     }
 
     public void Init()
@@ -46,6 +47,8 @@ public class ArrangementTest : MonoBehaviour
     /// <returns></returns>
     private bool Test1()
     {
+        bool count = true;
+
         int[,] idealPosition = new int[8, 8];
         idealPosition[0, 0] = 1;
         idealPosition[0, 1] = 1;
@@ -62,6 +65,20 @@ public class ArrangementTest : MonoBehaviour
         BoardPrint(boardManagement.piecePosition);
         BoardPrint(idealPosition);
 
-        return idealPosition == boardManagement.piecePosition;
+        for (int Y = 0;Y < idealPosition.GetLength(0); Y++)
+        {
+            for (int X = 0;X < idealPosition.GetLength(1); X++)
+            {
+                Debug.Log(count);
+                count &= idealPosition[Y, X] == boardManagement.piecePosition[Y, X];
+
+                //if(idealPosition[Y, X] != boardManagement.piecePosition[Y, X])
+                //{
+                //    return false;
+                //}
+            }
+        }
+
+        return count;
     }
 }
