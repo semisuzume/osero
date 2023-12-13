@@ -7,6 +7,8 @@ public class FunctionStorage : MonoBehaviour
 {
     private BoardManagement boardManagement;
     public List<Vector2Int> directVector = new List<Vector2Int>();
+    public static GameObject piece = Resources.Load("osero_piece") as GameObject;
+    public static GameObject nullObject = Resources.Load("null") as GameObject;
     // Start is called before the first frame update
     void Start()
     {
