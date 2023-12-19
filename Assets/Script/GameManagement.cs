@@ -39,6 +39,7 @@ public class GameManagement : MonoBehaviour
             case State.Init:
                 Debug.Log(state);
                 boardManagement.Init();
+                boardManagement.GeneratePiece();
                 state = State.Selection;
                 break;
             case State.Selection:
@@ -77,12 +78,16 @@ public class GameManagement : MonoBehaviour
                  * ArrangenmentŠÖ”‚ğì‚Á‚ÄÀs‚·‚é
                  */
                 boardManagement.Arrangement(playerTurn);
+                boardManagement.GeneratePiece();
                 state = State.Change;
                 break;
             case State.Change:
-                playerTurn += 1;
-                boardManagement.BoardPrint();
-                state = State.Selection;
+                if (boardManagement.EndJudge())
+                {
+                    playerTurn += 1;
+                    boardManagement.BoardPrint();
+                    state = State.Selection;
+                }
                 break;
         }
 

@@ -850,6 +850,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6343701132b6f83429f1a5e4aa2e65fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  piece: {fileID: 0}
+  nullObject: {fileID: 0}
   index: {x: 0, y: 0}
 --- !u!114 &1518342864
 MonoBehaviour:

@@ -12,6 +12,8 @@ public class BoardManagement : MonoBehaviour
     /// </summary>
     public int[,] piecePosition = new int[8, 8];
     GameManagement gameManagement;
+    public GameObject piece;
+    public GameObject nullObject;
     FunctionStorage storage;
     public Vector2Int index;
 
@@ -19,25 +21,27 @@ public class BoardManagement : MonoBehaviour
     void Start()
     {
         storage = GetComponent<FunctionStorage>();
+        piece = Resources.Load("osero_piece") as GameObject;
+        nullObject = Resources.Load("null") as GameObject;
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 
     public void Init()
     {
-        for(int y = 0; y < piecePosition.GetLength(0);y++)
+        for (int y = 0; y < piecePosition.GetLength(0); y++)
         {
-            for(int x = 0; x < piecePosition.GetLength(1); x++)
+            for (int x = 0; x < piecePosition.GetLength(1); x++)
             {
-                if(x == y && (x == 3 || x == 4))
+                if (x == y && (x == 3 || x == 4))
                 {
                     Assignment(x, y, 1);
                 }
-                else if(y == 7 - x && (y == 3 || y == 4))
+                else if (y == 7 - x && (y == 3 || y == 4))
                 {
                     Assignment(x, y, -1);
                 }
@@ -100,7 +104,7 @@ public class BoardManagement : MonoBehaviour
     public bool Judge(int turn)
     {
         int player = -2 * (turn % 2) + 1;
-        if(piecePosition[index.y,index.x] != 0)
+        if (piecePosition[index.y, index.x] != 0)
         {
             return false;
         }
@@ -116,7 +120,7 @@ public class BoardManagement : MonoBehaviour
 
             Vector2Int now = index + d;
             bool sandwiching = false;
-            
+
             while (0 <= now.x && now.x < 8 && 0 <= now.y && now.y < 8)
             {
                 if (piecePosition[now.y, now.x] == 0)
@@ -150,7 +154,7 @@ public class BoardManagement : MonoBehaviour
             Assignment(Temporarily[i], player);
         }
     }
-    
+
     public List<Vector2Int> ArrangementDirect(int player)
     {
         List<Vector2Int> allResults = new List<Vector2Int>();
@@ -184,10 +188,9 @@ public class BoardManagement : MonoBehaviour
         return allResults;
     }
 
-    void GeneratePiece()
+    public void GeneratePiece()
     {
         GameObject obj;
-
         foreach (GameObject destroyPiece in GameObject.FindGameObjectsWithTag("osero"))
         {
             Destroy(destroyPiece);
@@ -198,14 +201,38 @@ public class BoardManagement : MonoBehaviour
             {
                 if (piecePosition[y, x] != 0)
                 {
-                    obj = Instantiate(FunctionStorage.piece);
+                    obj = Instantiate(piece);
                     obj.tag = "osero";
+                    obj.transform.position = FunctionStorage.IndexToPos(new Vector2Int(x, y));
+                    if (piecePosition[y, x] == -1)
+                    {
+                        obj.transform.GetChild(1).GetComponent<Renderer>().material.color = Color.black;
+                    }
+                    else
+                    {
+                        obj.transform.GetChild(0).GetComponent<Renderer>().material.color = Color.black;
+                    }
                 }
                 else
                 {
-                    obj = Instantiate(FunctionStorage.nullObject);
+                    obj = Instantiate(nullObject);
                 }
             }
         }
+    }
+
+    public bool EndJudge()
+    {
+        for (int y = 0; y < piecePosition.GetLength(0); y++)
+        {
+            for (int x = 0; x < piecePosition.GetLength(1); x++)
+            {
+                 if(piecePosition[y, x] != 0)
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }

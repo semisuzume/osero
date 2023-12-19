@@ -7,8 +7,6 @@ public class FunctionStorage : MonoBehaviour
 {
     private BoardManagement boardManagement;
     public List<Vector2Int> directVector = new List<Vector2Int>();
-    public static GameObject piece = Resources.Load("osero_piece") as GameObject;
-    public static GameObject nullObject = Resources.Load("null") as GameObject;
     // Start is called before the first frame update
     void Start()
     {
@@ -38,5 +36,10 @@ public class FunctionStorage : MonoBehaviour
     public static Vector2Int PosToIndex(Vector2Int pos)
     {
         return new Vector2Int((pos.x + 7) / 2, -(pos.y - 7) / 2);
+    }
+
+    public static Vector3 IndexToPos(Vector2Int index)
+    {
+        return new Vector3(index.x * 2 - 7, 0.3f, -(index.y * 2 - 7));
     }
 }
