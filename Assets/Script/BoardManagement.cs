@@ -43,7 +43,7 @@ public class BoardManagement : MonoBehaviour
                 }
                 else if (y == 7 - x && (y == 3 || y == 4))
                 {
-                    Assignment(x, y, -1);
+                    Assignment(x, y, 1);
                 }
                 else
                 {
@@ -51,7 +51,7 @@ public class BoardManagement : MonoBehaviour
                 }
             }
         }
-        BoardPrint();
+        //BoardPrint();
     }
 
     public void BoardPrint()
@@ -113,6 +113,68 @@ public class BoardManagement : MonoBehaviour
     }
 
     public bool Direct(int player)
+    {
+        bool allResults = false;
+        foreach (Vector2Int d in storage.directVector)
+        {
+
+            Vector2Int now = index + d;
+            bool sandwiching = false;
+
+            while (0 <= now.x && now.x < 8 && 0 <= now.y && now.y < 8)
+            {
+                if (piecePosition[now.y, now.x] == 0)
+                {
+                    allResults |= false;
+                    break;
+                }
+                else if (piecePosition[now.y, now.x] == player)
+                {
+                    allResults |= sandwiching;
+                    break;
+                }
+                else if (piecePosition[now.y, now.x] != player)
+                {
+                    sandwiching = true;
+                }
+                now += d;
+            }
+        }
+        //Debug.Log(allResults);
+        return allResults;
+    }
+
+    public bool BlockageJudgment(int turn,int Counter)
+    {
+        if(Counter == 1)
+        {
+
+        }
+        for(int i = 0;i<piecePosition.GetLength(0);i++)
+        {
+            for (int j = 0;j < piecePosition.GetLength(1); j++)
+            {
+                if(Judge(turn, new Vector2Int(i, j)))
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public bool Judge(int turn, Vector2Int index)
+    {
+        int player = -2 * (turn % 2) + 1;
+        if (piecePosition[index.y, index.x] != 0)
+        {
+            return false;
+        }
+
+        return Direct(player,index);
+    }
+
+    public bool Direct(int player, Vector2Int index)
     {
         bool allResults = false;
         foreach (Vector2Int d in storage.directVector)
@@ -227,7 +289,7 @@ public class BoardManagement : MonoBehaviour
         {
             for (int x = 0; x < piecePosition.GetLength(1); x++)
             {
-                 if(piecePosition[y, x] != 0)
+                if (piecePosition[y, x] == 0)
                 {
                     return true;
                 }

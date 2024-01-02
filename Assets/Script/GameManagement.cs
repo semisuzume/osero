@@ -23,6 +23,7 @@ public class GameManagement : MonoBehaviour
     private BoardManagement boardManagement;
     public Vector2Int cellpos;
     private int playerTurn;
+    private int blockageCounter = 0;
 
     // Start is called before the first frame update
     void Start()
@@ -43,6 +44,12 @@ public class GameManagement : MonoBehaviour
                 state = State.Selection;
                 break;
             case State.Selection:
+                if (!boardManagement.BlockageJudgment(playerTurn,blockageCounter))
+                {
+                    Debug.Log("詰み");
+                    state = State.Change; 
+                    break;
+                }
                 if (Input.GetMouseButtonUp(0))
                 {
                     Debug.Log(state);
@@ -85,8 +92,12 @@ public class GameManagement : MonoBehaviour
                 if (boardManagement.EndJudge())
                 {
                     playerTurn += 1;
-                    boardManagement.BoardPrint();
+                    //boardManagement.BoardPrint();
                     state = State.Selection;
+                }
+                else
+                {
+                    Debug.Log("終了！！！");
                 }
                 break;
         }
