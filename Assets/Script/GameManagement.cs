@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GameManagement : MonoBehaviour
 {
@@ -17,13 +18,16 @@ public class GameManagement : MonoBehaviour
         //piecePositionの選択された場所に駒の情報を代入する,盤面の更新
         Arrangement,
         //操作プレイヤーを変更
-        Change
+        Change,
+        //実行を止める
+        Result
     }
     State state = State.Init;
     private BoardManagement boardManagement;
     public Vector2Int cellpos;
     private int playerTurn;
     private int blockageCounter = 0;
+    private bool callConfirmation;
 
     // Start is called before the first frame update
     void Start()
@@ -41,13 +45,14 @@ public class GameManagement : MonoBehaviour
                 Debug.Log(state);
                 boardManagement.Init();
                 boardManagement.GeneratePiece();
+                callConfirmation = true;
                 state = State.Selection;
                 break;
             case State.Selection:
-                if (!boardManagement.BlockageJudgment(playerTurn,blockageCounter))
+                if (!boardManagement.BlockageJudgment(playerTurn, blockageCounter))
                 {
                     Debug.Log("詰み");
-                    state = State.Change; 
+                    state = State.Change;
                     break;
                 }
                 if (Input.GetMouseButtonUp(0))
@@ -63,13 +68,13 @@ public class GameManagement : MonoBehaviour
                         break;
                     }
                     cellpos = FunctionStorage.Vector3ToVector2(cellPos3.Value);
-                    Debug.Log((int)(-1+0.5f));
+                    Debug.Log((int)(-1 + 0.5f));
                     boardManagement.Intermediary(cellpos);
                     state = State.Judgement;
                 }
                 break;
             case State.Judgement:
-                if(boardManagement.Judge(playerTurn))
+                if (boardManagement.Judge(playerTurn))
                 {
                     Debug.Log("ジャッジ通ったよ");
                     state = State.Arrangement;
@@ -97,12 +102,19 @@ public class GameManagement : MonoBehaviour
                 }
                 else
                 {
-                    Debug.Log("終了！！！");
+                    state = State.Result;
+                }
+                break;
+            case State.Result:
+                if (callConfirmation)
+                {
+                    SceneManager.LoadScene("Result", LoadSceneMode.Additive);
+                    callConfirmation = false;
                 }
                 break;
         }
 
     }
 
-    
+
 }

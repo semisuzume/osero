@@ -39,7 +39,7 @@ public class BoardManagement : MonoBehaviour
             {
                 if (x == y && (x == 3 || x == 4))
                 {
-                    Assignment(x, y, 1);
+                    Assignment(x, y, -1);
                 }
                 else if (y == 7 - x && (y == 3 || y == 4))
                 {
@@ -144,6 +144,7 @@ public class BoardManagement : MonoBehaviour
         return allResults;
     }
 
+    //’u‚¯‚éêŠ‚ª‚ ‚é‚È‚çtrue
     public bool BlockageJudgment(int turn,int Counter)
     {
         if(Counter == 1)
@@ -154,7 +155,7 @@ public class BoardManagement : MonoBehaviour
         {
             for (int j = 0;j < piecePosition.GetLength(1); j++)
             {
-                if(Judge(turn, new Vector2Int(i, j)))
+                if(Judge(turn, new Vector2Int(i, j)) > 0)
                 {
                     return true;
                 }
@@ -163,47 +164,46 @@ public class BoardManagement : MonoBehaviour
         return false;
     }
 
-    public bool Judge(int turn, Vector2Int index)
+    public int Judge(int turn, Vector2Int index)
     {
         int player = -2 * (turn % 2) + 1;
         if (piecePosition[index.y, index.x] != 0)
         {
-            return false;
+            return 0;
         }
 
         return Direct(player,index);
     }
 
-    public bool Direct(int player, Vector2Int index)
+    public int Direct(int player, Vector2Int index)
     {
-        bool allResults = false;
+        int points = 0;
         foreach (Vector2Int d in storage.directVector)
         {
 
             Vector2Int now = index + d;
-            bool sandwiching = false;
+            int directionPoints = 0;
 
             while (0 <= now.x && now.x < 8 && 0 <= now.y && now.y < 8)
             {
                 if (piecePosition[now.y, now.x] == 0)
                 {
-                    allResults |= false;
                     break;
                 }
                 else if (piecePosition[now.y, now.x] == player)
                 {
-                    allResults |= sandwiching;
+                    points += directionPoints;
                     break;
                 }
                 else if (piecePosition[now.y, now.x] != player)
                 {
-                    sandwiching = true;
+                    directionPoints++;
                 }
                 now += d;
             }
         }
         //Debug.Log(allResults);
-        return allResults;
+        return points;
     }
 
     public void Arrangement(int turn)
