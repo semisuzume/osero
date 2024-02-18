@@ -6,9 +6,9 @@ using static UnityEngine.Networking.UnityWebRequest;
 public class BoardManagement : MonoBehaviour
 {
     /// <summary>
-    /// ”’‚P,
-    /// •-1,
-    /// null0
+    /// ï¿½ï¿½ï¿½ï¿½ï¿½P,
+    /// ï¿½ï¿½ï¿½ï¿½-1,
+    /// nullï¿½ï¿½0
     /// </summary>
     public int[,] piecePosition = new int[8, 8];
     GameManagement gameManagement;
@@ -70,11 +70,10 @@ public class BoardManagement : MonoBehaviour
     public void Intermediary(Vector2Int cellpos)
     {
         index = FunctionStorage.PosToIndex(cellpos);
-        Debug.Log(index);
     }
 
     /// <summary>
-    /// ”’‚P,•-1,null0
+    /// ï¿½ï¿½ï¿½ï¿½ï¿½P,ï¿½ï¿½ï¿½ï¿½-1,nullï¿½ï¿½0
     /// </summary>
     /// <param name="x"></param>
     /// <param name="y"></param>
@@ -95,9 +94,9 @@ public class BoardManagement : MonoBehaviour
     }
 
     /// <summary>
-    /// ’u‚¯‚é(true)
-    /// E‚·‚Å‚É‹î‚ª’u‚©‚ê‚Ä‚¢‚È‚¢i”z—ñ“à‚ªnull)
-    /// E‘Šè‚Ì‹î‚ğ‹²‚ß‚é
+    /// ï¿½uï¿½ï¿½ï¿½é(true)
+    /// ï¿½Eï¿½ï¿½ï¿½Å‚É‹î‚ªï¿½uï¿½ï¿½ï¿½ï¿½Ä‚ï¿½ï¿½È‚ï¿½ï¿½iï¿½zï¿½ï¿½ï¿½ï¿½ï¿½null)
+    /// ï¿½Eï¿½ï¿½ï¿½ï¿½Ì‹ï¿½ï¿½ï¿½ï¿½ï¿½ß‚ï¿½
     /// </summary>
     /// <param name="turn"></param>
     /// <returns></returns>
@@ -144,18 +143,17 @@ public class BoardManagement : MonoBehaviour
         return allResults;
     }
 
-    //’u‚¯‚éêŠ‚ª‚ ‚é‚È‚çtrue
-    public bool BlockageJudgment(int turn,int Counter)
+    //ï¿½uï¿½ï¿½ï¿½ï¿½êŠï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È‚ï¿½true
+    public bool BlockageJudgment(int turn, int Counter)
     {
-        if(Counter == 1)
+        if (Counter == 1)
         {
 
         }
-        for(int i = 0;i<piecePosition.GetLength(0);i++)
+        for (int i = 0; i < piecePosition.GetLength(0); i++)
         {
-            for (int j = 0;j < piecePosition.GetLength(1); j++)
-            {
-                if(Judge(turn, new Vector2Int(i, j)) > 0)
+            for (int j = 0; j < piecePosition.GetLength(1); j++)
+            {                if (Judge(turn, new Vector2Int(i, j)) > 0)
                 {
                     return true;
                 }
@@ -164,6 +162,12 @@ public class BoardManagement : MonoBehaviour
         return false;
     }
 
+    /// <summary>
+    /// indexã‚’æ¸¡ã™ã¨ã²ã£ãã‚Šè¿”ã›ã‚‹æšæ•°ã‚’è¿”ã—ã¦ãã‚Œã‚‹
+    /// </summary>
+    /// <param name="turn"></param>
+    /// <param name="index"></param>
+    /// <returns></returns>
     public int Judge(int turn, Vector2Int index)
     {
         int player = -2 * (turn % 2) + 1;
@@ -171,8 +175,7 @@ public class BoardManagement : MonoBehaviour
         {
             return 0;
         }
-
-        return Direct(player,index);
+        return Direct(player, index);
     }
 
     public int Direct(int player, Vector2Int index)
@@ -202,7 +205,7 @@ public class BoardManagement : MonoBehaviour
                 now += d;
             }
         }
-        //Debug.Log(allResults);
+        //Debug.Log(points);
         return points;
     }
 
@@ -229,18 +232,18 @@ public class BoardManagement : MonoBehaviour
             {
                 if (piecePosition[now.y, now.x] == 0)
                 {
-                    //I‚í‚è
+                    //ï¿½Iï¿½ï¿½ï¿½
                     break;
                 }
                 else if (piecePosition[now.y, now.x] == player)
                 {
-                    //Œó•â‚ğŠm’è‚·‚é
+                    //ï¿½ï¿½ï¿½ï¿½ï¿½mï¿½è‚·ï¿½ï¿½
                     allResults.AddRange(candidate);
                     break;
                 }
                 else if (piecePosition[now.y, now.x] != player)
                 {
-                    //Œó•â‚Ì’Ç‰Á
+                    //ï¿½ï¿½ï¿½Ì’Ç‰ï¿½
                     candidate.Add(now);
                 }
                 now += d;

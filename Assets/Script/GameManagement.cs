@@ -9,21 +9,23 @@ public class GameManagement : MonoBehaviour
     {
         Test,
 
-        //piecePosition‚É‰Šú’l‚ğ“ü‚ê‚é
+        //piecePositionï¿½Éï¿½ï¿½ï¿½ï¿½lï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         Init,
-        //ƒ}ƒEƒX‚Å‹î‚ğ’u‚­êŠ‚ğ‘I‘ğ
-        Selection,
-        //‘I‘ğ‚³‚ê‚½êŠ‚É‹î‚ª’u‚¯‚é‚©‚ğ”»’è‚·‚é
+        //ï¿½}ï¿½Eï¿½Xï¿½Å‹ï¿½ï¿½uï¿½ï¿½ï¿½êŠï¿½ï¿½Iï¿½ï¿½
+        SelectionPlayer,
+        SelectionCPU,
+        //ï¿½Iï¿½ï¿½ï¿½ï¿½ï¿½ê‚½ï¿½êŠï¿½É‹î‚ªï¿½uï¿½ï¿½ï¿½é‚©ï¿½ğ”»’è‚·ï¿½ï¿½
         Judgement,
-        //piecePosition‚Ì‘I‘ğ‚³‚ê‚½êŠ‚É‹î‚Ìî•ñ‚ğ‘ã“ü‚·‚é,”Õ–Ê‚ÌXV
+        //piecePositionï¿½Ì‘Iï¿½ï¿½ï¿½ï¿½ï¿½ê‚½ï¿½êŠï¿½É‹ï¿½Ìï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½,ï¿½Õ–Ê‚ÌXï¿½V
         Arrangement,
-        //‘€ìƒvƒŒƒCƒ„[‚ğ•ÏX
+        //ï¿½ï¿½ï¿½ï¿½vï¿½ï¿½ï¿½Cï¿½ï¿½ï¿½[ï¿½ï¿½ÏX
         Change,
-        //Às‚ğ~‚ß‚é
+        //ï¿½ï¿½ï¿½sï¿½ï¿½ï¿½~ï¿½ß‚ï¿½
         Result
     }
     State state = State.Init;
     private BoardManagement boardManagement;
+    private CPU cpu;
     public Vector2Int cellpos;
     private int playerTurn;
     private int blockageCounter = 0;
@@ -34,87 +36,113 @@ public class GameManagement : MonoBehaviour
     {
         //state = State.Test;
         boardManagement = GetComponent<BoardManagement>();
+        cpu = GetComponent<CPU>();
+        StartCoroutine("ModeratorFacilitator");//â†’å¤‰æ›´ï¼šModeratorFacilitator()
     }
 
     // Update is called once per frame
     void Update()
     {
-        switch (state)
-        {
-            case State.Init:
-                Debug.Log(state);
-                boardManagement.Init();
-                boardManagement.GeneratePiece();
-                callConfirmation = true;
-                state = State.Selection;
-                break;
-            case State.Selection:
-                if (!boardManagement.BlockageJudgment(playerTurn, blockageCounter))
-                {
-                    Debug.Log("‹l‚İ");
-                    state = State.Change;
-                    break;
-                }
-                if (Input.GetMouseButtonUp(0))
-                {
-                    Debug.Log(state);
-                    Vector3? cellPos3 = null;
-                    if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hit))
-                    {
-                        cellPos3 = hit.collider.gameObject.transform.position;
-                    }
-                    if (cellPos3 is null)
-                    {
-                        break;
-                    }
-                    cellpos = FunctionStorage.Vector3ToVector2(cellPos3.Value);
-                    Debug.Log((int)(-1 + 0.5f));
-                    boardManagement.Intermediary(cellpos);
-                    state = State.Judgement;
-                }
-                break;
-            case State.Judgement:
-                if (boardManagement.Judge(playerTurn))
-                {
-                    Debug.Log("ƒWƒƒƒbƒW’Ê‚Á‚½‚æ");
-                    state = State.Arrangement;
-                }
-                else
-                {
-                    Debug.Log("ƒWƒƒƒbƒW’Ê‚Á‚Ä‚È‚¢‚æ");
-                    state = State.Selection;
-                }
-                break;
-            case State.Arrangement:
-                /*
-                 * ArrangenmentŠÖ”‚ğì‚Á‚ÄÀs‚·‚é
-                 */
-                boardManagement.Arrangement(playerTurn);
-                boardManagement.GeneratePiece();
-                state = State.Change;
-                break;
-            case State.Change:
-                if (boardManagement.EndJudge())
-                {
-                    playerTurn += 1;
-                    //boardManagement.BoardPrint();
-                    state = State.Selection;
-                }
-                else
-                {
-                    state = State.Result;
-                }
-                break;
-            case State.Result:
-                if (callConfirmation)
-                {
-                    SceneManager.LoadScene("Result", LoadSceneMode.Additive);
-                    callConfirmation = false;
-                }
-                break;
-        }
-
+        Debug.Log("");
     }
 
 
+
+    IEnumerator ModeratorFacilitator()//å‰å›è¿½åŠ ã—ãŸã¨ã“ã‚
+    {
+        while (true)
+        {
+            yield return null;
+            switch (state)
+            {
+                case State.Init:
+                    Debug.Log(state);
+                    boardManagement.Init();
+                    boardManagement.GeneratePiece();
+                    playerTurn = 0;
+                    callConfirmation = true;
+                    state = State.SelectionPlayer;
+                    break;
+                case State.SelectionPlayer:
+                    Debug.Log(state);
+                    if (!boardManagement.BlockageJudgment(playerTurn, blockageCounter))
+                    {
+                        Debug.Log("æ‰‹ç•ªäº¤ä»£");
+                        state = State.Change;
+                    }
+                    if (Input.GetMouseButtonUp(0))
+                    {
+                        Debug.Log(state);
+                        Vector3? cellPos3 = null;
+                        if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out RaycastHit hit))
+                        {
+                            cellPos3 = hit.collider.gameObject.transform.position;
+                        }
+                        if (cellPos3 is null)
+                        {
+                            break;
+                        }
+                        cellpos = FunctionStorage.Vector3ToVector2(cellPos3.Value);
+                        boardManagement.Intermediary(cellpos);
+                        state = State.Judgement;
+                    }
+                    break;
+                case State.SelectionCPU:
+                    cpu.Copy(boardManagement.piecePosition);
+                    cellpos = cpu.Action(playerTurn);
+                    boardManagement.index = cellpos;
+                    yield return new WaitForSeconds(1);//å‰å›è¿½åŠ ã—ãŸã¨ã“ã‚
+                    state = State.Judgement;
+                    break;
+                case State.Judgement:
+                    if (boardManagement.Judge(playerTurn))
+                    {
+                        Debug.Log("judgeé€šã£ãŸã‚ˆ");
+                        state = State.Arrangement;
+                    }
+                    else
+                    {
+                        Debug.Log("judgeé€šã£ã¦ãªã„ã‚ˆ");
+                        state = State.SelectionPlayer;
+                    }
+                    break;
+                case State.Arrangement:
+                    /*
+                     * Arrangenmentï¿½Öï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Äï¿½ï¿½sï¿½ï¿½ï¿½ï¿½
+                     */
+                    boardManagement.Arrangement(playerTurn);
+                    boardManagement.GeneratePiece();
+                    state = State.Change;
+                    break;
+                case State.Change:
+                    yield return null;//å‰å›è¿½åŠ ã—ãŸã¨ã“ã‚
+                    if (boardManagement.EndJudge())
+                    {
+                        playerTurn += 1;
+                        if (playerTurn % 2 == 0)
+                        {
+                            Debug.Log("ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼");
+                            state = State.SelectionPlayer;
+                        }
+                        else
+                        {
+                            Debug.Log("CPU");
+                            state = State.SelectionCPU;
+                        }
+                    }
+                    else
+                    {
+                        state = State.Result;
+                    }
+                    break;
+                case State.Result:
+                    if (callConfirmation)
+                    {
+                        SceneManager.LoadScene("Result", LoadSceneMode.Additive);
+                        callConfirmation = false;
+                    }
+                    break;
+            }
+        }
+    }
 }
