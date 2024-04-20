@@ -27,6 +27,7 @@ public class GameManagement : MonoBehaviour
     private BoardManagement boardManagement;
     private CPU cpu;
     public Vector2Int cellpos;
+    //player == 白
     private int playerTurn;
     private int blockageCounter = 0;
     private bool callConfirmation;
@@ -43,12 +44,12 @@ public class GameManagement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        Debug.Log("");
+
     }
 
 
 
-    IEnumerator ModeratorFacilitator()//前回追加したところ
+    IEnumerator ModeratorFacilitator()
     {
         while (true)
         {
@@ -64,7 +65,7 @@ public class GameManagement : MonoBehaviour
                     state = State.SelectionPlayer;
                     break;
                 case State.SelectionPlayer:
-                    Debug.Log(state);
+                    //Debug.Log(state);
                     if (!boardManagement.BlockageJudgment(playerTurn, blockageCounter))
                     {
                         Debug.Log("手番交代");
@@ -88,10 +89,11 @@ public class GameManagement : MonoBehaviour
                     }
                     break;
                 case State.SelectionCPU:
+                    Debug.Log("入った");
                     cpu.Copy(boardManagement.piecePosition);
                     cellpos = cpu.Action(playerTurn);
                     boardManagement.index = cellpos;
-                    yield return new WaitForSeconds(1);//前回追加したところ
+                    yield return new WaitForSeconds(1);
                     state = State.Judgement;
                     break;
                 case State.Judgement:
@@ -106,6 +108,7 @@ public class GameManagement : MonoBehaviour
                         state = State.SelectionPlayer;
                     }
                     break;
+                //反映
                 case State.Arrangement:
                     /*
                      * Arrangenment�֐�������Ď��s����
@@ -115,7 +118,6 @@ public class GameManagement : MonoBehaviour
                     state = State.Change;
                     break;
                 case State.Change:
-                    yield return null;//前回追加したところ
                     if (boardManagement.EndJudge())
                     {
                         playerTurn += 1;
@@ -146,3 +148,4 @@ public class GameManagement : MonoBehaviour
         }
     }
 }
+

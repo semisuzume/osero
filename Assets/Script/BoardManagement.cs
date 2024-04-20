@@ -6,9 +6,9 @@ using static UnityEngine.Networking.UnityWebRequest;
 public class BoardManagement : MonoBehaviour
 {
     /// <summary>
-    /// �����P,
-    /// ����-1,
-    /// null��0
+    /// 白 = 1,
+    /// 黒 = -1,
+    /// null=0
     /// </summary>
     public int[,] piecePosition = new int[8, 8];
     GameManagement gameManagement;
@@ -67,13 +67,26 @@ public class BoardManagement : MonoBehaviour
         }
     }
 
+    public void ListPrint(int[,] list)
+    {
+        for (int i = 0; i < list.GetLength(0); i++)
+        {
+            string str = "";
+            for (int j = 0; j < list.GetLength(1); j++)
+            {
+                str = str + list[i, j] + " ";
+            }
+            Debug.Log(str);
+        }
+    }
+
     public void Intermediary(Vector2Int cellpos)
     {
         index = FunctionStorage.PosToIndex(cellpos);
     }
 
     /// <summary>
-    /// �����P,����-1,null��0
+    /// ?????P,????-1,null??0
     /// </summary>
     /// <param name="x"></param>
     /// <param name="y"></param>
@@ -88,15 +101,15 @@ public class BoardManagement : MonoBehaviour
         Assignment(location.x, location.y, color);
     }
 
-    public void Assignment(Vector3Int locationAndcolor)
+    public void Assignment(Vector3Int locationAndColor)
     {
-        Assignment(locationAndcolor);
+        Assignment(locationAndColor);
     }
 
     /// <summary>
-    /// �u���鎞(true)
-    /// �E���łɋ�u����Ă��Ȃ��i�z�����null)
-    /// �E����̋�����߂�
+    /// ?u????(true)
+    /// ?E???????u??????????i?z?????null)
+    /// ?E????????????
     /// </summary>
     /// <param name="turn"></param>
     /// <returns></returns>
@@ -105,6 +118,7 @@ public class BoardManagement : MonoBehaviour
         int player = -2 * (turn % 2) + 1;
         if (piecePosition[index.y, index.x] != 0)
         {
+            Debug.Log("埋まってます");
             return false;
         }
 
@@ -125,25 +139,28 @@ public class BoardManagement : MonoBehaviour
                 if (piecePosition[now.y, now.x] == 0)
                 {
                     allResults |= false;
+                    Debug.Log("a");
                     break;
                 }
                 else if (piecePosition[now.y, now.x] == player)
                 {
                     allResults |= sandwiching;
+                    Debug.Log("b");
                     break;
                 }
                 else if (piecePosition[now.y, now.x] != player)
                 {
                     sandwiching = true;
+                    Debug.Log("c");
                 }
                 now += d;
             }
         }
-        //Debug.Log(allResults);
+        Debug.Log(allResults);
         return allResults;
     }
 
-    //�u����ꏊ������Ȃ�true
+    //?u?????????????true
     public bool BlockageJudgment(int turn, int Counter)
     {
         if (Counter == 1)
@@ -153,7 +170,8 @@ public class BoardManagement : MonoBehaviour
         for (int i = 0; i < piecePosition.GetLength(0); i++)
         {
             for (int j = 0; j < piecePosition.GetLength(1); j++)
-            {                if (Judge(turn, new Vector2Int(i, j)) > 0)
+            {
+                if (Judge(turn, new Vector2Int(i, j)) > 0)
                 {
                     return true;
                 }
@@ -183,7 +201,6 @@ public class BoardManagement : MonoBehaviour
         int points = 0;
         foreach (Vector2Int d in storage.directVector)
         {
-
             Vector2Int now = index + d;
             int directionPoints = 0;
 
@@ -209,6 +226,7 @@ public class BoardManagement : MonoBehaviour
         return points;
     }
 
+    // ArrangementDirectから帰ってきた情報をまとめて反映する
     public void Arrangement(int turn)
     {
         int player = -2 * (turn % 2) + 1;
@@ -220,6 +238,7 @@ public class BoardManagement : MonoBehaviour
         }
     }
 
+    // ひっくり返す方向と枚数を探索する。
     public List<Vector2Int> ArrangementDirect(int player)
     {
         List<Vector2Int> allResults = new List<Vector2Int>();
@@ -232,18 +251,15 @@ public class BoardManagement : MonoBehaviour
             {
                 if (piecePosition[now.y, now.x] == 0)
                 {
-                    //�I���
                     break;
                 }
                 else if (piecePosition[now.y, now.x] == player)
                 {
-                    //�����m�肷��
                     allResults.AddRange(candidate);
                     break;
                 }
                 else if (piecePosition[now.y, now.x] != player)
                 {
-                    //���̒ǉ�
                     candidate.Add(now);
                 }
                 now += d;

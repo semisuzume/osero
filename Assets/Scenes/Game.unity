@@ -904,6 +904,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eae7ad25ec8268f48a5f74273e213727, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cellpos: {x: 0, y: 0}
 --- !u!1 &1520166866
 GameObject:
   m_ObjectHideFlags: 0
