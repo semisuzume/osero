@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class CPU : GameManagement
 {
-    public class MaxProfitPosition
+    public struct MaxProfitPosition
     {
         public Vector2Int selectedPosition;
         public int color;
@@ -15,7 +15,6 @@ public class CPU : GameManagement
     public int[,] piecePositionCopy = new int[8, 8];
     Dictionary<Vector3Int, MaxProfitPosition> profitPositionList = new Dictionary<Vector3Int, MaxProfitPosition>();
     FunctionStorage storage;
-    int turnCopy;
 
     // Start is called before the first frame update
     void Start()
@@ -45,27 +44,28 @@ public class CPU : GameManagement
 
     public Vector2Int Action(int turn)
     {
-        turnCopy = turn;
         MaxProfitPosition temp = new MaxProfitPosition()
         {
             maxFlipCount = 0
         };
+        AllDelete(profitPositionList);
+        profitPositionList.Add(new Vector3Int(-1, 0, 0), new MaxProfitPosition());
         int progress = 0;
         for (int i = 0; i < 3; i++)
         {
             foreach (Vector3Int key in profitPositionList.Keys)
             {
-                if (key.x > 0)
+                if (key.x > 0)//最初にCPUが置く手を探索する
                 {
-                    if (key.y > 0)
+                    if (key.y > 0)//プレイヤーが置くであろう手を探索する
                     {
-                        if (key.z > 0)
+                        if (key.z > 0)//それに対してCPUが置く手を探索する
                         {
                             progress = 3;
                         }
                         else
                         {
-                            progress = 2;
+                            progress = 2;//ここまで来たら何もせずにCPUの処理は終了
                         }
                     }
                     else
@@ -77,11 +77,9 @@ public class CPU : GameManagement
                 {
                     progress = 0;
                 }
-                Debug.Log("progress:" + progress);
-                break;
             }
-            FindValidMoves(turn, progress);
-            turn++;
+            Debug.Log("progress:" + progress);
+            FindValidMoves(turn + i, progress);
         }
         foreach (Vector3Int key in profitPositionList.Keys)
         {
@@ -96,31 +94,61 @@ public class CPU : GameManagement
 
     public void FindValidMoves(int turn, int progress)
     {
-        for (int i = 0; i < piecePositionCopy.GetLength(0); i++)
+        Dictionary<Vector3Int, MaxProfitPosition> profitPositionListCopy = new Dictionary<Vector3Int, MaxProfitPosition>();
+        //profitPositionList.Remove(new Vector3Int(0,0,0));
+        foreach (Vector3Int key in profitPositionListCopy.Keys)
         {
-            for (int j = 0; j < piecePositionCopy.GetLength(1); j++)
+            Debug.Log("key:" + key);
+        }
+        Debug.Log("FindValidMoves");
+        foreach (Vector3Int keyCopy in profitPositionList.Keys)
+        {
+            UpdatePiecePositionCopy(turn, progress, keyCopy);//コピー盤面を用意
+            for (int i = 0; i < piecePositionCopy.GetLength(0); i++)
             {
-                MaxProfitPosition profitPosition = new MaxProfitPosition();
-                int tempCount = Judge(turn, new Vector2Int(i, j));
-                int key = 1;
-                if (tempCount > 0)
+                for (int j = 0; j < piecePositionCopy.GetLength(1); j++)//64マス全探索
                 {
-                    profitPosition.maxFlipCount = tempCount;
-                    profitPosition.selectedPosition = new Vector2Int(i, j);
-                    Debug.Log("profitPosition:" + profitPosition.selectedPosition);
-                    switch (progress)
+                    MaxProfitPosition profitPosition = new MaxProfitPosition();
+                    int tempCount = Judge(turn, new Vector2Int(i, j));
+                    int keyToSpecify = 1;
+                    if (tempCount > 0)
                     {
-                        case 0:
-                            while (profitPositionList.ContainsKey(new Vector3Int(key, 0, 0)))
-                            {
-                                key++;
-                            }
-                            Debug.Log("key:" + key.ToString());
-                            AssignToList(profitPositionList, new Vector3Int(key, 0, 0), profitPosition);
-                            break;
+                        profitPosition.maxFlipCount = tempCount;
+                        profitPosition.selectedPosition = new Vector2Int(i, j);
+                        Debug.Log("profitPosition:" + profitPosition.selectedPosition);
+                        switch (progress)
+                        {
+                            case 0:
+                                while (profitPositionList.ContainsKey(new Vector3Int(keyToSpecify, 0, 0)))
+                                {
+                                    keyToSpecify++;
+                                }
+                                Debug.Log("keyToSpecify:" + keyToSpecify.ToString());
+                                AssignToList(profitPositionListCopy, new Vector3Int(keyToSpecify, 0, 0), profitPosition);//結果を一時保存
+                                break;
+                            case 1:
+
+                                break;
+                        }
                     }
                 }
             }
+        }
+        //一時保存したデータをオリジナル（profitPositionList）に.Add
+    }
+
+    private void UpdatePiecePositionCopy(int turn, int progress, Vector3Int key)
+    {
+        switch (progress)
+        {
+            case 0:
+                break;
+            case 1://key.xを取り出して反映してからｙの値を反映する
+                if (key.y == 0 && key.z == 0)
+                {
+                    Arrangement(turn, profitPositionList[key].selectedPosition);
+                }
+                break;
         }
     }
 
@@ -227,5 +255,18 @@ public class CPU : GameManagement
     private void Assignment(MaxProfitPosition maxProfitPosition)
     {
         Assignment(maxProfitPosition.selectedPosition, maxProfitPosition.color);
+    }
+
+    private void AllDelete(Dictionary<Vector3Int, MaxProfitPosition> list)
+    {
+        List<Vector3Int> vector3Ints = new List<Vector3Int>();
+        foreach (Vector3Int key in list.Keys)
+        {
+            vector3Ints.Add(key);
+        }
+        foreach (Vector3Int key in vector3Ints)
+        {
+            list.Remove(key);
+        }
     }
 }
