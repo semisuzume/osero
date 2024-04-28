@@ -86,7 +86,7 @@ public class BoardManagement : MonoBehaviour
     }
 
     /// <summary>
-    /// ?????P,????-1,null??0
+    /// �����P,����-1,null��0
     /// </summary>
     /// <param name="x"></param>
     /// <param name="y"></param>
@@ -101,15 +101,15 @@ public class BoardManagement : MonoBehaviour
         Assignment(location.x, location.y, color);
     }
 
-    public void Assignment(Vector3Int locationAndColor)
+    public void Assignment(Vector3Int locationAndcolor)
     {
-        Assignment(locationAndColor);
+        Assignment(locationAndcolor);
     }
 
     /// <summary>
-    /// ?u????(true)
-    /// ?E???????u??????????i?z?????null)
-    /// ?E????????????
+    /// �u���鎞(true)
+    /// �E���łɋ�u����Ă��Ȃ��i�z�����null)
+    /// �E����̋�����߂�
     /// </summary>
     /// <param name="turn"></param>
     /// <returns></returns>
@@ -118,7 +118,6 @@ public class BoardManagement : MonoBehaviour
         int player = -2 * (turn % 2) + 1;
         if (piecePosition[index.y, index.x] != 0)
         {
-            Debug.Log("埋まってます");
             return false;
         }
 
@@ -139,28 +138,25 @@ public class BoardManagement : MonoBehaviour
                 if (piecePosition[now.y, now.x] == 0)
                 {
                     allResults |= false;
-                    Debug.Log("a");
                     break;
                 }
                 else if (piecePosition[now.y, now.x] == player)
                 {
                     allResults |= sandwiching;
-                    Debug.Log("b");
                     break;
                 }
                 else if (piecePosition[now.y, now.x] != player)
                 {
                     sandwiching = true;
-                    Debug.Log("c");
                 }
                 now += d;
             }
         }
-        Debug.Log(allResults);
+        //Debug.Log(allResults);
         return allResults;
     }
 
-    //?u?????????????true
+    //�u����ꏊ������Ȃ�true
     public bool BlockageJudgment(int turn, int Counter)
     {
         if (Counter == 1)
@@ -201,6 +197,7 @@ public class BoardManagement : MonoBehaviour
         int points = 0;
         foreach (Vector2Int d in storage.directVector)
         {
+
             Vector2Int now = index + d;
             int directionPoints = 0;
 
@@ -251,15 +248,18 @@ public class BoardManagement : MonoBehaviour
             {
                 if (piecePosition[now.y, now.x] == 0)
                 {
+                    //�I���
                     break;
                 }
                 else if (piecePosition[now.y, now.x] == player)
                 {
+                    //�����m�肷��
                     allResults.AddRange(candidate);
                     break;
                 }
                 else if (piecePosition[now.y, now.x] != player)
                 {
+                    //���̒ǉ�
                     candidate.Add(now);
                 }
                 now += d;
