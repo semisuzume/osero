@@ -1,10 +1,9 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
-public class CPU : GameManagement
+public class CPU : MonoBehaviour
 {
     public struct MaxProfitPosition
     {
@@ -233,7 +232,7 @@ public class CPU : GameManagement
                 now += d;
             }
         }
-        // Debug.Log(allResults);
+        //Debug.Log(allResults);
         return points;
     }
 
