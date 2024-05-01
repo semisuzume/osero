@@ -40,14 +40,6 @@ public class GameManagement : MonoBehaviour
         StartCoroutine("ModeratorFacilitator");//→変更：ModeratorFacilitator()
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        Debug.Log("");
-    }
-
-
-
     IEnumerator ModeratorFacilitator()//前回追加したところ
     {
         while (true)

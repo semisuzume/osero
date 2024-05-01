@@ -126,7 +126,11 @@ public class CPU : MonoBehaviour
                                 AssignToList(profitPositionListCopy, new Vector3Int(keyToSpecify, 0, 0), profitPosition);//結果を一時保存
                                 break;
                             case 1:
-
+                                while (profitPositionList.ContainsKey(new Vector3Int(keyCopy.x, keyToSpecify, 0)))
+                                {
+                                    keyToSpecify++;
+                                }
+                                AssignToList(profitPositionListCopy, new Vector3Int(keyCopy.x, keyToSpecify, 0), profitPosition);
                                 break;
                         }
                     }
@@ -138,16 +142,21 @@ public class CPU : MonoBehaviour
 
     private void UpdatePiecePositionCopy(int turn, int progress, Vector3Int key)
     {
-        switch (progress)
+        if (key.x != -1)
         {
-            case 0:
-                break;
-            case 1://key.xを取り出して反映してからｙの値を反映する
-                if (key.y == 0 && key.z == 0)
-                {
-                    Arrangement(turn, profitPositionList[key].selectedPosition);
-                }
-                break;
+            switch (progress)
+            {
+                case 0:
+                    break;
+                case 1:
+                    if (key.y == 0 && key.z == 0)
+                    {
+                        Arrangement(turn, profitPositionList[key].selectedPosition);
+                    }
+                    break;
+                case 2://key.xを取り出して反映してからｙの値を反映する
+                    break;
+            }
         }
     }
 
