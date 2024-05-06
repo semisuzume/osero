@@ -56,7 +56,6 @@ public class GameManagement : MonoBehaviour
                     state = State.SelectionPlayer;
                     break;
                 case State.SelectionPlayer:
-                    Debug.Log(state);
                     if (!boardManagement.BlockageJudgment(playerTurn, blockageCounter))
                     {
                         Debug.Log("手番交代");

@@ -48,42 +48,42 @@ public class CPU : MonoBehaviour
             maxFlipCount = 0
         };
         AllDelete(profitPositionList);
-        profitPositionList.Add(new Vector3Int(-1, 0, 0), new MaxProfitPosition());
-        int progress = 0;
-        for (int i = 0; i < 3; i++)
+        profitPositionList.Add(new Vector3Int(0, 0, 0), new MaxProfitPosition());
+        for (int progress = 0; progress < 3; progress++)
         {
-            foreach (Vector3Int key in profitPositionList.Keys)
-            {
-                if (key.x > 0)//最初にCPUが置く手を探索する
-                {
-                    if (key.y > 0)//プレイヤーが置くであろう手を探索する
-                    {
-                        if (key.z > 0)//それに対してCPUが置く手を探索する
-                        {
-                            progress = 3;
-                        }
-                        else
-                        {
-                            progress = 2;//ここまで来たら何もせずにCPUの処理は終了
-                        }
-                    }
-                    else
-                    {
-                        progress = 1;
-                    }
-                }
-                else
-                {
-                    progress = 0;
-                }
-            }
+            // foreach (Vector3Int key in profitPositionList.Keys)
+            // {
+            //     if (key.x > 0)// 最初にCPUが置く手を探索する
+            //     {
+            //         if (key.y > 0)// プレイヤーが置くであろう手を探索する
+            //         {
+            //             if (key.z > 0)// それに対してCPUが置く手を探索する
+            //             {
+            //                 progress = 3;// ここまで来たら何もせずにCPUの処理は終了
+            //             }
+            //             else
+            //             {
+            //                 progress = 2;
+            //             }
+            //         }
+            //         else
+            //         {
+            //             progress = 1;
+            //         }
+            //     }
+            //     else
+            //     {
+            //         progress = 0;
+            //     }
+            // }
             Debug.Log("progress:" + progress);
-            FindValidMoves(turn + i, progress);
+            FindValidMoves(turn + progress, progress);
         }
         foreach (Vector3Int key in profitPositionList.Keys)
         {
             if (temp.maxFlipCount < profitPositionList[key].maxFlipCount)
             {
+                Debug.Log(key);
                 temp = profitPositionList[key];
             }
         }
@@ -94,7 +94,6 @@ public class CPU : MonoBehaviour
     public void FindValidMoves(int turn, int progress)
     {
         Dictionary<Vector3Int, MaxProfitPosition> profitPositionListCopy = new Dictionary<Vector3Int, MaxProfitPosition>();
-        //profitPositionList.Remove(new Vector3Int(0,0,0));
         foreach (Vector3Int key in profitPositionListCopy.Keys)
         {
             Debug.Log("key:" + key);
@@ -102,10 +101,10 @@ public class CPU : MonoBehaviour
         Debug.Log("FindValidMoves");
         foreach (Vector3Int keyCopy in profitPositionList.Keys)
         {
-            UpdatePiecePositionCopy(turn, progress, keyCopy);//コピー盤面を用意
+            UpdatePiecePositionCopy(turn, progress, keyCopy);// コピー盤面を用意
             for (int i = 0; i < piecePositionCopy.GetLength(0); i++)
             {
-                for (int j = 0; j < piecePositionCopy.GetLength(1); j++)//64マス全探索
+                for (int j = 0; j < piecePositionCopy.GetLength(1); j++)// 64マス全探索
                 {
                     MaxProfitPosition profitPosition = new MaxProfitPosition();
                     int tempCount = Judge(turn, new Vector2Int(i, j));
@@ -114,22 +113,22 @@ public class CPU : MonoBehaviour
                     {
                         profitPosition.maxFlipCount = tempCount;
                         profitPosition.selectedPosition = new Vector2Int(i, j);
-                        Debug.Log("profitPosition:" + profitPosition.selectedPosition);
                         switch (progress)
                         {
                             case 0:
-                                while (profitPositionList.ContainsKey(new Vector3Int(keyToSpecify, 0, 0)))
+                                while (profitPositionListCopy.ContainsKey(new Vector3Int(keyToSpecify, 0, 0)))
                                 {
                                     keyToSpecify++;
                                 }
-                                Debug.Log("keyToSpecify:" + keyToSpecify.ToString());
-                                AssignToList(profitPositionListCopy, new Vector3Int(keyToSpecify, 0, 0), profitPosition);//結果を一時保存
+                                Debug.Log("key:" + keyToSpecify.ToString() + "," + 0 + "," + 0 + "data:"  + profitPosition.selectedPosition);
+                                AssignToList(profitPositionListCopy, new Vector3Int(keyToSpecify, 0, 0), profitPosition);// 結果を一時保存
                                 break;
                             case 1:
-                                while (profitPositionList.ContainsKey(new Vector3Int(keyCopy.x, keyToSpecify, 0)))
+                                while (profitPositionListCopy.ContainsKey(new Vector3Int(keyCopy.x, keyToSpecify, 0)))
                                 {
                                     keyToSpecify++;
                                 }
+                                Debug.Log("key:" + keyCopy.x + "," + keyToSpecify + "," + 0 + "data:"  + profitPosition.selectedPosition);
                                 AssignToList(profitPositionListCopy, new Vector3Int(keyCopy.x, keyToSpecify, 0), profitPosition);
                                 break;
                         }
@@ -137,27 +136,28 @@ public class CPU : MonoBehaviour
                 }
             }
         }
-        //一時保存したデータをオリジナル（profitPositionList）に.Add
+        // 一時保存したデータをオリジナル（profitPositionList）に.Add
+        profitPositionList.Remove(new Vector3Int(0, 0, 0));
+        AssignToList(profitPositionList, profitPositionListCopy);
     }
 
     private void UpdatePiecePositionCopy(int turn, int progress, Vector3Int key)
     {
-        if (key.x != -1)
+
+        switch (progress)
         {
-            switch (progress)
-            {
-                case 0:
-                    break;
-                case 1:
-                    if (key.y == 0 && key.z == 0)
-                    {
-                        Arrangement(turn, profitPositionList[key].selectedPosition);
-                    }
-                    break;
-                case 2://key.xを取り出して反映してからｙの値を反映する
-                    break;
-            }
+            case 0:
+                break;
+            case 1:
+                if (key.y == 0 && key.z == 0)
+                {
+                    Arrangement(turn, profitPositionList[key].selectedPosition);
+                }
+                break;
+            case 2:// key.xを取り出して反映してからｙの値を反映する
+                break;
         }
+
     }
 
     // ArrangementDirectから帰ってきた情報をまとめて反映する
@@ -241,13 +241,21 @@ public class CPU : MonoBehaviour
                 now += d;
             }
         }
-        //Debug.Log(allResults);
+        // Debug.Log(allResults);
         return points;
     }
 
     private void AssignToList(Dictionary<Vector3Int, MaxProfitPosition> list, Vector3Int key, MaxProfitPosition element)
     {
         list.Add(key, element);
+    }
+
+    private void AssignToList(Dictionary<Vector3Int, MaxProfitPosition> list, Dictionary<Vector3Int, MaxProfitPosition> list2)
+    {
+        foreach (Vector3Int keyCopy in list2.Keys)
+        {
+            AssignToList(list, keyCopy, list2[keyCopy]);
+        }
     }
 
     private void Assignment(int x, int y, int color)
