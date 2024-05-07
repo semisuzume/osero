@@ -12,7 +12,7 @@ public class CPU : MonoBehaviour
         public int maxFlipCount;
     }
     public int[,] piecePositionCopy = new int[8, 8];
-    Dictionary<Vector3Int, MaxProfitPosition> profitPositionList = new Dictionary<Vector3Int, MaxProfitPosition>();
+    Dictionary<List<int>, MaxProfitPosition> profitPositionList = new Dictionary<List<int>, MaxProfitPosition>();
     FunctionStorage storage;
 
     // Start is called before the first frame update
@@ -48,7 +48,7 @@ public class CPU : MonoBehaviour
             maxFlipCount = 0
         };
         AllDelete(profitPositionList);
-        profitPositionList.Add(new Vector3Int(0, 0, 0), new MaxProfitPosition());
+        profitPositionList.Add(new List<int>{0}, new MaxProfitPosition());
         for (int progress = 0; progress < 3; progress++)
         {
             // foreach (Vector3Int key in profitPositionList.Keys)
@@ -79,7 +79,7 @@ public class CPU : MonoBehaviour
             Debug.Log("progress:" + progress);
             FindValidMoves(turn + progress, progress);
         }
-        foreach (Vector3Int key in profitPositionList.Keys)
+        foreach (List<int> key in profitPositionList.Keys)
         {
             if (temp.maxFlipCount < profitPositionList[key].maxFlipCount)
             {
@@ -99,7 +99,7 @@ public class CPU : MonoBehaviour
             Debug.Log("key:" + key);
         }
         Debug.Log("FindValidMoves");
-        foreach (Vector3Int keyCopy in profitPositionList.Keys)
+        foreach (List<int> keyCopy in profitPositionList.Keys)
         {
             UpdatePiecePositionCopy(turn, progress, keyCopy);// コピー盤面を用意
             for (int i = 0; i < piecePositionCopy.GetLength(0); i++)
@@ -141,9 +141,12 @@ public class CPU : MonoBehaviour
         AssignToList(profitPositionList, profitPositionListCopy);
     }
 
-    private void UpdatePiecePositionCopy(int turn, int progress, Vector3Int key)
+    private void UpdatePiecePositionCopy(int turn, int progress, List<int> key)
     {
-
+        for (int i = 0; i >= progress; i++)
+        {
+            
+        }
         switch (progress)
         {
             case 0:
@@ -273,14 +276,14 @@ public class CPU : MonoBehaviour
         Assignment(maxProfitPosition.selectedPosition, maxProfitPosition.color);
     }
 
-    private void AllDelete(Dictionary<Vector3Int, MaxProfitPosition> list)
+    private void AllDelete(Dictionary<List<int>, MaxProfitPosition> list)
     {
-        List<Vector3Int> vector3Ints = new List<Vector3Int>();
-        foreach (Vector3Int key in list.Keys)
+        List<List<int>> keys = new List<List<int>>();
+        foreach (List<int> key in list.Keys)
         {
-            vector3Ints.Add(key);
+            keys.Add(key);
         }
-        foreach (Vector3Int key in vector3Ints)
+        foreach (List<int> key in keys)
         {
             list.Remove(key);
         }
