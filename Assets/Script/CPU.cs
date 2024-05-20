@@ -1,30 +1,61 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
+public class ListComparer : IEqualityComparer<List<int>>
+{
+    public bool Equals(List<int> x, List<int> y)
+    {
+        if (x == null || y == null)
+            return x == y;
+
+        if (x.Count != y.Count)
+            return false;
+
+        for (int i = 0; i < x.Count; i++)
+        {
+            if (x[i] != y[i])
+                return false;
+        }
+
+        return true;
+    }
+
+    public int GetHashCode(List<int> obj)
+    {
+        if (obj == null)
+            return 0;
+
+        int hash = 17;
+        foreach (int item in obj)
+        {
+            hash = hash * 31 + item.GetHashCode();
+        }
+
+        return hash;
+    }
+}
+
 public class CPU : MonoBehaviour
 {
-    public struct MaxProfitPosition
+    public class MaxProfitPosition
     {
-        public Vector2Int selectedPosition;
-        public int color;
-        public int maxFlipCount;
+        public Vector2Int SelectedPosition;
+        public int Color;
+        public int MaxFlipCount;
+        public List<MaxProfitPosition> Children = new List<MaxProfitPosition>();
     }
     public int[,] piecePositionCopy = new int[8, 8];
-    Dictionary<List<int>, MaxProfitPosition> profitPositionList = new Dictionary<List<int>, MaxProfitPosition>();
+    //List<MaxProfitPosition> profitPositionList = new List<MaxProfitPosition>();
+    Dictionary<List<int>, MaxProfitPosition> profitPositionList = new Dictionary<List<int>, MaxProfitPosition>(new ListComparer());
     FunctionStorage storage;
 
     // Start is called before the first frame update
     void Start()
     {
         storage = GetComponent<FunctionStorage>();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
     }
 
     public void Copy(int[,] originalData)
@@ -45,10 +76,14 @@ public class CPU : MonoBehaviour
     {
         MaxProfitPosition temp = new MaxProfitPosition()
         {
-            maxFlipCount = 0
+            MaxFlipCount = 0
         };
         AllDelete(profitPositionList);
-        profitPositionList.Add(new List<int>{0}, new MaxProfitPosition());
+        var disposable = new List<int>
+        {
+            0
+        };
+        profitPositionList.Add(disposable, new MaxProfitPosition() { SelectedPosition = new Vector2Int(-1, -1) });
         for (int progress = 0; progress < 3; progress++)
         {
             // foreach (Vector3Int key in profitPositionList.Keys)
@@ -81,27 +116,23 @@ public class CPU : MonoBehaviour
         }
         foreach (List<int> key in profitPositionList.Keys)
         {
-            if (temp.maxFlipCount < profitPositionList[key].maxFlipCount)
+            if (temp.MaxFlipCount < profitPositionList[key].MaxFlipCount)
             {
                 Debug.Log(key);
                 temp = profitPositionList[key];
             }
         }
-        Debug.Log("temp:" + temp.selectedPosition);
-        return temp.selectedPosition;
+        Debug.Log("temp:" + temp.SelectedPosition);
+        return temp.SelectedPosition;
     }
 
     public void FindValidMoves(int turn, int progress)
     {
-        Dictionary<Vector3Int, MaxProfitPosition> profitPositionListCopy = new Dictionary<Vector3Int, MaxProfitPosition>();
-        foreach (Vector3Int key in profitPositionListCopy.Keys)
+        // Dictionary<Vector3Int, MaxProfitPosition> profitPositionListCopy = new Dictionary<Vector3Int, MaxProfitPosition>();
+        Dictionary<List<int>, MaxProfitPosition> profitPositionListCopy = new Dictionary<List<int>, MaxProfitPosition>();
+        foreach (List<int> keysCopy in profitPositionList.Keys)
         {
-            Debug.Log("key:" + key);
-        }
-        Debug.Log("FindValidMoves");
-        foreach (List<int> keyCopy in profitPositionList.Keys)
-        {
-            UpdatePiecePositionCopy(turn, progress, keyCopy);// コピー盤面を用意
+            UpdatePiecePositionCopy(turn, progress, keysCopy);// コピー盤面を用意
             for (int i = 0; i < piecePositionCopy.GetLength(0); i++)
             {
                 for (int j = 0; j < piecePositionCopy.GetLength(1); j++)// 64マス全探索
@@ -111,56 +142,59 @@ public class CPU : MonoBehaviour
                     int keyToSpecify = 1;
                     if (tempCount > 0)
                     {
-                        profitPosition.maxFlipCount = tempCount;
-                        profitPosition.selectedPosition = new Vector2Int(i, j);
-                        switch (progress)
+                        profitPosition.MaxFlipCount = tempCount;
+                        profitPosition.SelectedPosition = new Vector2Int(i, j);
+                        foreach (List<int> keysCopy2 in profitPositionListCopy.Keys)
                         {
-                            case 0:
-                                while (profitPositionListCopy.ContainsKey(new Vector3Int(keyToSpecify, 0, 0)))
+                            while (keysCopy2[progress] >= keysCopy[progress])
+                            {
+                                keysCopy.Insert(progress, keyToSpecify);
+                                if (keysCopy2[progress] >= keysCopy[progress])
                                 {
                                     keyToSpecify++;
                                 }
-                                Debug.Log("key:" + keyToSpecify.ToString() + "," + 0 + "," + 0 + "data:"  + profitPosition.selectedPosition);
-                                AssignToList(profitPositionListCopy, new Vector3Int(keyToSpecify, 0, 0), profitPosition);// 結果を一時保存
-                                break;
-                            case 1:
-                                while (profitPositionListCopy.ContainsKey(new Vector3Int(keyCopy.x, keyToSpecify, 0)))
-                                {
-                                    keyToSpecify++;
-                                }
-                                Debug.Log("key:" + keyCopy.x + "," + keyToSpecify + "," + 0 + "data:"  + profitPosition.selectedPosition);
-                                AssignToList(profitPositionListCopy, new Vector3Int(keyCopy.x, keyToSpecify, 0), profitPosition);
-                                break;
+                            }
                         }
+                        AssignToList(profitPositionListCopy, keysCopy, profitPosition);
+                        // switch (progress)
+                        // {
+                        //     case 0:
+                        //         while (profitPositionListCopy.ContainsKey(new Vector3Int(keyToSpecify, 0, 0)))
+                        //         {
+                        //             keyToSpecify++;
+                        //         }
+                        //         Debug.Log("key:" + keyToSpecify.ToString() + "," + 0 + "," + 0 + "data:" + profitPosition.selectedPosition);
+                        //         AssignToList(profitPositionListCopy, new Vector3Int(keyToSpecify, 0, 0), profitPosition);// 結果を一時保存
+                        //         break;
+                        //     case 1:
+                        //         while (profitPositionListCopy.ContainsKey(new Vector3Int(keysCopy.x, keyToSpecify, 0)))
+                        //         {
+                        //             keyToSpecify++;
+                        //         }
+                        //         Debug.Log("key:" + keysCopy.x + "," + keyToSpecify + "," + 0 + "data:" + profitPosition.selectedPosition);
+                        //         AssignToList(profitPositionListCopy, new Vector3Int(keysCopy.x, keyToSpecify, 0), profitPosition);
+                        //         break;
+                        // }
                     }
                 }
             }
         }
         // 一時保存したデータをオリジナル（profitPositionList）に.Add
-        profitPositionList.Remove(new Vector3Int(0, 0, 0));
-        AssignToList(profitPositionList, profitPositionListCopy);
     }
 
     private void UpdatePiecePositionCopy(int turn, int progress, List<int> key)
     {
-        for (int i = 0; i >= progress; i++)
+        List<int> keysCopy = new List<int>();// 指定するためのList
+        for (int i = 0; i <= progress; i++)// 現在のprogressの分だけkeyからコピーする
         {
-            
+            keysCopy.Add(key[i]);
         }
-        switch (progress)
+        if (profitPositionList[keysCopy].SelectedPosition != new Vector2Int(-1, -1))
         {
-            case 0:
-                break;
-            case 1:
-                if (key.y == 0 && key.z == 0)
-                {
-                    Arrangement(turn, profitPositionList[key].selectedPosition);
-                }
-                break;
-            case 2:// key.xを取り出して反映してからｙの値を反映する
-                break;
+            Debug.Log(ListPrint(keysCopy) + "|" + ListPrint(key));
+            Debug.Log(profitPositionList.ContainsKey(key).ToString());
+            Arrangement(turn, profitPositionList[keysCopy].SelectedPosition);
         }
-
     }
 
     // ArrangementDirectから帰ってきた情報をまとめて反映する
@@ -248,14 +282,14 @@ public class CPU : MonoBehaviour
         return points;
     }
 
-    private void AssignToList(Dictionary<Vector3Int, MaxProfitPosition> list, Vector3Int key, MaxProfitPosition element)
+    private void AssignToList(Dictionary<List<int>, MaxProfitPosition> list, List<int> key, MaxProfitPosition element)
     {
         list.Add(key, element);
     }
 
-    private void AssignToList(Dictionary<Vector3Int, MaxProfitPosition> list, Dictionary<Vector3Int, MaxProfitPosition> list2)
+    private void AssignToList(Dictionary<List<int>, MaxProfitPosition> list, Dictionary<List<int>, MaxProfitPosition> list2)
     {
-        foreach (Vector3Int keyCopy in list2.Keys)
+        foreach (List<int> keyCopy in list2.Keys)
         {
             AssignToList(list, keyCopy, list2[keyCopy]);
         }
@@ -273,7 +307,7 @@ public class CPU : MonoBehaviour
 
     private void Assignment(MaxProfitPosition maxProfitPosition)
     {
-        Assignment(maxProfitPosition.selectedPosition, maxProfitPosition.color);
+        Assignment(maxProfitPosition.SelectedPosition, maxProfitPosition.Color);
     }
 
     private void AllDelete(Dictionary<List<int>, MaxProfitPosition> list)
@@ -287,5 +321,15 @@ public class CPU : MonoBehaviour
         {
             list.Remove(key);
         }
+    }
+
+    public string ListPrint(IReadOnlyList<int> ints)
+    {
+        string a = "";
+        foreach (int keyCopy in ints)
+        {
+            a += " " + keyCopy;
+        }
+        return a;
     }
 }
