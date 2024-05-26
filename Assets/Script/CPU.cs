@@ -86,31 +86,6 @@ public class CPU : MonoBehaviour
         profitPositionList.Add(disposable, new MaxProfitPosition() { SelectedPosition = new Vector2Int(-1, -1) });
         for (int progress = 0; progress < 3; progress++)
         {
-            // foreach (Vector3Int key in profitPositionList.Keys)
-            // {
-            //     if (key.x > 0)// 最初にCPUが置く手を探索する
-            //     {
-            //         if (key.y > 0)// プレイヤーが置くであろう手を探索する
-            //         {
-            //             if (key.z > 0)// それに対してCPUが置く手を探索する
-            //             {
-            //                 progress = 3;// ここまで来たら何もせずにCPUの処理は終了
-            //             }
-            //             else
-            //             {
-            //                 progress = 2;
-            //             }
-            //         }
-            //         else
-            //         {
-            //             progress = 1;
-            //         }
-            //     }
-            //     else
-            //     {
-            //         progress = 0;
-            //     }
-            // }
             Debug.Log("progress:" + progress);
             FindValidMoves(turn + progress, progress);
         }
@@ -125,6 +100,8 @@ public class CPU : MonoBehaviour
         Debug.Log("temp:" + temp.SelectedPosition);
         return temp.SelectedPosition;
     }
+
+
 
     public void FindValidMoves(int turn, int progress)
     {
@@ -148,11 +125,8 @@ public class CPU : MonoBehaviour
                         {
                             while (keysCopy2[progress] >= keysCopy[progress])
                             {
+                                keyToSpecify++;
                                 keysCopy.Insert(progress, keyToSpecify);
-                                if (keysCopy2[progress] >= keysCopy[progress])
-                                {
-                                    keyToSpecify++;
-                                }
                             }
                         }
                         AssignToList(profitPositionListCopy, keysCopy, profitPosition);
