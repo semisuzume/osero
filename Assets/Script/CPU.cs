@@ -46,13 +46,13 @@ public class CPU : MonoBehaviour
         public Vector2Int SelectedPosition;
         public int turn;
         public int MaxFlipCount;
-        public MaxProfitPosition Parent;
     }
     public int[,] piecePositionCopy = new int[8, 8];
     // List<MaxProfitPosition> profitPositionList = new List<MaxProfitPosition>();
     // Vector2Int[] vector2Ints = new Vector2Int[64];
     // List<List<Vector2Int>> threeMoveAheadPatterns = new List<List<Vector2Int>>();
     Dictionary<List<int>, MaxProfitPosition> profitPositionList = new Dictionary<List<int>, MaxProfitPosition>(new ListComparer());
+    Dictionary<List<int>, MaxProfitPosition> profitPositionListCopy = new Dictionary<List<int>, MaxProfitPosition>();
     FunctionStorage storage;
 
     // Start is called before the first frame update
@@ -84,11 +84,10 @@ public class CPU : MonoBehaviour
             MaxFlipCount = 0
         };
         profitPositionList.Clear();
-        profitPositionList.Add(new MaxProfitPosition() { SelectedPosition = new Vector2Int(-1, -1) });
-        for (int progress = 0; progress < 3 progress++)
+        profitPositionList.Add(new List<int> { -1 }, new MaxProfitPosition() { SelectedPosition = new Vector2Int(-1, -1) });
+        for (int progress = 0; progress < 3; progress++)
         {
-            Debug.Log("progress:" + progress);
-            FindValidMoves(turn + progress, progress);
+            profitPositionList = profitPositionList.Concat(FindValidMoves(turn, progress, profitPositionList, piecePositionCopy).Where(pair => !profitPositionList.ContainsKey(pair.Key))).ToDictionary(dicPair => dicPair.Key, dicPair => dicPair.Value);
         }
         foreach (List<int> key in profitPositionList.Keys)
         {
@@ -103,40 +102,46 @@ public class CPU : MonoBehaviour
     }
 
     //引数:現在のターン数、何手目まで探索したか、n手目で置ける場所の保存されているDictionary、現在の盤面情報
-    //ｎ+1手目で置ける場所の保存されているDictionary
-    //foreachを使っている為、直接profitPositionListの編集ができない、そのためCopyに候補を入れ後でprofitPositionListに統合する
+    //戻り値:ｎ+1手目で置ける場所の保存されているDictionary
+    //foreachを使っている為、直接profitPositionListの編集ができない、そのためCopyに候補を入れ戻り値で返す
     //profitPositionListからkeyのprogressの値と同じkeyの長さを持つ現在探索できている候補地を取り出す
     //112行目で取り出した候補地に駒を実際に置いた場合の盤面の再現を114行目のUpdatePiecePositionCopyで行う
     //総当たりで打てる場所を探す116行～118行、121行目:座標（i,j）に打った場合にひっくり返せる枚数をtempCountに保存する
     //一枚でもひっくり返せるのなら（124行）、AssignToListを用いてprofitPositionLsitCopyに保存する
     //全ての探索が終わったらprofitPositionListに統合する
     //ターン数を経過させる
-    public void FindValidMoves(int turn, int progress, Dictionary<List<int>, MaxProfitPosition> profitPositionList, int[,] defaultBoard)
+    public Dictionary<List<int>, MaxProfitPosition> FindValidMoves(int turn, int progress, Dictionary<List<int>, MaxProfitPosition> profitPositionList, int[,] defaultBoard)
     {
-        // Dictionary<Vector3Int, MaxProfitPosition> profitPositionListCopy = new Dictionary<Vector3Int, MaxProfitPosition>();
-        //List<MaxProfitPosition> profitPositionCopy = new List<MaxProfitPosition>();
-        foreach (KeyValuePair<List<int>, MaxProfitPosition> keyValuePair in profitPositionList)
+        foreach (List<int> key in profitPositionList.Keys)
         {
-            if (keyValuePair.Key.Count != progress) continue;
-            UpdatePiecePositionCopy(turn, progress, keyValuePair.Key);// コピー盤面を用意
+            if (progress == 0) { }
+            else if (key.Count != progress) continue;
+            UpdatePiecePositionCopy(turn, progress, key);// コピー盤面を用意
             for (int i = 0; i < piecePositionCopy.GetLength(0); i++)
             {
                 for (int j = 0; j < piecePositionCopy.GetLength(1); j++)// 64マス全探索
                 {
-                    MaxProfitPosition profitPosition = new MaxProfitPosition();
+                    List<int> keyInformation = new List<int>(key);
+                    MaxProfitPosition valueInformation = new MaxProfitPosition();
                     int tempCount = Judge(turn, new Vector2Int(i, j));
                     int keyToSpecify = 1;
                     if (tempCount > 0)
                     {
-                        profitPosition.MaxFlipCount = tempCount;
-                        profitPosition.SelectedPosition = new Vector2Int(i, j);
-
-                        AssignToList(profitPositionListCopy, keysCopy, profitPosition);
+                        do
+                        {
+                            keyInformation.RemoveAt(progress);
+                            keyInformation.Insert(progress, keyToSpecify);
+                            keyToSpecify++;
+                        } while (profitPositionListCopy.ContainsKey(keyInformation));
+                        valueInformation.MaxFlipCount = tempCount;
+                        valueInformation.SelectedPosition = new Vector2Int(i, j);
+                        profitPositionListCopy.Add(keyInformation, valueInformation);
                     }
                 }
             }
         }
-        // 一時保存したデータをオリジナル（profitPositionList）に.Add
+        // 一時保存したデータを返す
+        return profitPositionListCopy;
     }
 
     //引数：現在のターン数、何手目まで探索したか、探索したい枝のkey
@@ -148,30 +153,21 @@ public class CPU : MonoBehaviour
         for (int i = 0; i <= progress; i++)// 現在のprogressの分だけkeyからコピーする
         {
             List<int> stac = new List<int>();
-            for (int j = 0; j < i; j++)
+            for (int j = 0; j <= i; j++)
             {
-                stac.Add(key[j]);
+                stac = new List<int> { key[i] };
             }
-            if (profitPositionList[stac].SelectedPosition != new Vector2Int(-1, -1))
+            if (profitPositionList.ContainsKey(stac))
             {
-                Arrangement(turn, profitPositionList[stac].SelectedPosition);
+                if (!(profitPositionList[stac].SelectedPosition.x < 0 && profitPositionList[stac].SelectedPosition.y < 0))
+                {
+                    Arrangement(turn, profitPositionList[stac].SelectedPosition);
+                }
             }
-        }
-    }
-
-    private void UpdatePiecePositionCopy(MaxProfitPosition maxProfitPosition)
-    {
-        if (maxProfitPosition.SelectedPosition != new Vector2Int(-1, -1))
-        {
-            Arrangement(maxProfitPosition.turn, maxProfitPosition.SelectedPosition);
-        }
-    }
-
-    private void UpdatePiecePositionCopy(int turn, Vector2Int selectedPosition)
-    {
-        if (selectedPosition != new Vector2Int(-1, -1))
-        {
-            Arrangement(turn, selectedPosition);
+            else
+            {
+                Debug.Log("違う！");
+            }
         }
     }
 
@@ -281,11 +277,6 @@ public class CPU : MonoBehaviour
     private void Assignment(Vector2Int location, int color)
     {
         Assignment(location.x, location.y, color);
-    }
-
-    private void Assignment(MaxProfitPosition maxProfitPosition)
-    {
-        Assignment(maxProfitPosition.SelectedPosition, maxProfitPosition.Color);
     }
 
     private void AllDelete(Dictionary<List<int>, MaxProfitPosition> list)

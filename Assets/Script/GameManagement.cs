@@ -82,7 +82,7 @@ public class GameManagement : MonoBehaviour
                     cpu.Copy(boardManagement.piecePosition);
                     cellpos = cpu.Action(playerTurn);
                     boardManagement.index = cellpos;
-                    yield return new WaitForSeconds(1);//前回追加したところ
+                    yield return new WaitForSeconds(1);
                     state = State.Judgement;
                     break;
                 case State.Judgement:
