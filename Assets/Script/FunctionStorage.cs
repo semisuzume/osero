@@ -7,8 +7,21 @@ public class FunctionStorage : MonoBehaviour
 {
     private BoardManagement boardManagement;
     public List<Vector2Int> directVector = new List<Vector2Int>();
+    public Vector2Int[] cornerPos = new Vector2Int[4];
     // Start is called before the first frame update
     void Start()
+    {
+        InitDirectVector();
+        InitCornerPos();
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+
+    }
+
+    public void InitDirectVector()
     {
         for(int x = -1; x <= 1; x++)
         {
@@ -22,10 +35,17 @@ public class FunctionStorage : MonoBehaviour
         }
     }
 
-    // Update is called once per frame
-    void Update()
+    public void InitCornerPos()
     {
-        
+        int counter = 0;
+        for(int x = 0; x <= 7; x += 7)
+        {
+            for (int y = 0; y <= 7; y += 7)
+            {
+                cornerPos[counter] = new Vector2Int(x,y);
+                counter++;
+            }
+        }
     }
 
     public static Vector2Int Vector3ToVector2(Vector3 vector3)
