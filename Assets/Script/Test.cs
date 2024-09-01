@@ -55,8 +55,8 @@ public class Test : MonoBehaviour
     }
 
     /// <summary>
-    /// ¶‚©‚çZœ~‚Å’u‚­
-    /// ‘z’èFtrue
+    /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Zï¿½ï¿½ï¿½~ï¿½Å’uï¿½ï¿½
+    /// ï¿½zï¿½ï¿½Ftrue
     /// </summary>
     /// <returns></returns>
     private bool Test1()
@@ -71,8 +71,8 @@ public class Test : MonoBehaviour
     }
 
     /// <summary>
-    /// ¶‚©‚çœœ~‚Å’u‚­
-    /// ‘z’èFfalse
+    /// ï¿½ï¿½ï¿½ï¿½ï¿½çœï¿½ï¿½ï¿½~ï¿½Å’uï¿½ï¿½
+    /// ï¿½zï¿½ï¿½Ffalse
     /// </summary>
     /// <returns></returns>
     private bool Test2()
@@ -87,8 +87,8 @@ public class Test : MonoBehaviour
     }
 
     /// <summary>
-    /// ¶‚©‚çnœ~‚Å’u‚­
-    /// ‘z’èFfalse
+    /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½nï¿½ï¿½ï¿½~ï¿½Å’uï¿½ï¿½
+    /// ï¿½zï¿½ï¿½Ffalse
     /// </summary>
     /// <returns></returns>
     private bool Test3()
@@ -103,8 +103,8 @@ public class Test : MonoBehaviour
     }
 
     /// <summary>
-    /// ¶‚©‚çZœœ~‚Å’u‚­
-    /// ‘z’èFtrue
+    /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Zï¿½ï¿½ï¿½ï¿½ï¿½~ï¿½Å’uï¿½ï¿½
+    /// ï¿½zï¿½ï¿½Ftrue
     /// </summary>
     /// <returns></returns>
     private bool Test4()
@@ -120,8 +120,8 @@ public class Test : MonoBehaviour
     }
 
     /// <summary>
-    /// ¶‚©‚çZœN~‚Å’u‚­
-    /// ‘z’èFfalse
+    /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Zï¿½ï¿½Nï¿½~ï¿½Å’uï¿½ï¿½
+    /// ï¿½zï¿½ï¿½Ffalse
     /// </summary>
     /// <returns></returns>
     private bool Test5() 
@@ -136,8 +136,8 @@ public class Test : MonoBehaviour
     }
 
     /// <summary>
-    /// ¶ã‚©‚çZœ~‚Å’u‚­
-    /// ‘z’èFtrue
+    /// ï¿½ï¿½ï¿½ã‚©ï¿½ï¿½Zï¿½ï¿½ï¿½~ï¿½Å’uï¿½ï¿½
+    /// ï¿½zï¿½ï¿½Ftrue
     /// </summary>
     /// <returns></returns>
     private bool Test6()
@@ -152,8 +152,8 @@ public class Test : MonoBehaviour
     }
 
     /// <summary>
-    /// ¶ã‚©‚çœœ~‚Å’u‚­
-    /// ‘z’èFfalse
+    /// ï¿½ï¿½ï¿½ã‚©ï¿½çœï¿½ï¿½ï¿½~ï¿½Å’uï¿½ï¿½
+    /// ï¿½zï¿½ï¿½Ffalse
     /// </summary>
     /// <returns></returns>
     private bool Test7()
@@ -168,8 +168,8 @@ public class Test : MonoBehaviour
     }
 
     /// <summary>
-    /// ¶ã‚©‚çnœ~‚Å’u‚­
-    /// ‘z’èFfalse
+    /// ï¿½ï¿½ï¿½ã‚©ï¿½ï¿½nï¿½ï¿½ï¿½~ï¿½Å’uï¿½ï¿½
+    /// ï¿½zï¿½ï¿½Ffalse
     /// </summary>
     /// <returns></returns>
     private bool Test8()
@@ -184,8 +184,8 @@ public class Test : MonoBehaviour
     }
 
     /// <summary>
-    ///ã‚©‚çZœ~‚Å’u‚­
-    /// ‘z’èFtrue 
+    ///ï¿½ã‚©ï¿½ï¿½Zï¿½ï¿½ï¿½~ï¿½Å’uï¿½ï¿½
+    /// ï¿½zï¿½ï¿½Ftrue 
     /// </summary>
     /// <returns></returns>
     private bool Test9()
@@ -200,8 +200,8 @@ public class Test : MonoBehaviour
     }
 
     /// <summary>
-    /// ã‚©‚çœœ~‚Å’u‚­
-    /// ‘z’èFfalse
+    /// ï¿½ã‚©ï¿½çœï¿½ï¿½ï¿½~ï¿½Å’uï¿½ï¿½
+    /// ï¿½zï¿½ï¿½Ffalse
     /// </summary>
     /// <returns></returns>
     private bool Test10()
@@ -216,8 +216,8 @@ public class Test : MonoBehaviour
     }
 
     /// <summary>
-    /// ã‚©‚çnœ~‚Å’u‚­
-    /// ‘z’èFfalse
+    /// ï¿½ã‚©ï¿½ï¿½nï¿½ï¿½ï¿½~ï¿½Å’uï¿½ï¿½
+    /// ï¿½zï¿½ï¿½Ffalse
     /// </summary>
     /// <returns></returns>
     private bool Test11()
@@ -232,8 +232,8 @@ public class Test : MonoBehaviour
     }
 
     /// <summary>
-    /// ‰Eã‚©‚çZœ~‚Å’u‚­
-    /// ‘z’èFtrue
+    /// ï¿½Eï¿½ã‚©ï¿½ï¿½Zï¿½ï¿½ï¿½~ï¿½Å’uï¿½ï¿½
+    /// ï¿½zï¿½ï¿½Ftrue
     /// </summary>
     /// <returns></returns>
     private bool Test12()
@@ -248,8 +248,8 @@ public class Test : MonoBehaviour
     }
 
     /// <summary>
-    /// ‰Eã‚©‚çœœ~‚Å’u‚­
-    /// ‘z’èFfalse
+    /// ï¿½Eï¿½ã‚©ï¿½çœï¿½ï¿½ï¿½~ï¿½Å’uï¿½ï¿½
+    /// ï¿½zï¿½ï¿½Ffalse
     /// </summary>
     /// <returns></returns>
     private bool Test13()
@@ -264,8 +264,8 @@ public class Test : MonoBehaviour
     }
 
     /// <summary>
-    /// ‰Eã‚©‚çnœ~‚Å’u‚­
-    /// ‘z’èFfalse
+    /// ï¿½Eï¿½ã‚©ï¿½ï¿½nï¿½ï¿½ï¿½~ï¿½Å’uï¿½ï¿½
+    /// ï¿½zï¿½ï¿½Ffalse
     /// </summary>
     /// <returns></returns>
     private bool Test14()
@@ -280,8 +280,8 @@ public class Test : MonoBehaviour
     }
 
     /// <summary>
-    /// ‰E‚©‚çZœ~‚Å’u‚­
-    /// ‘z’èFtrue
+    /// ï¿½Eï¿½ï¿½ï¿½ï¿½Zï¿½ï¿½ï¿½~ï¿½Å’uï¿½ï¿½
+    /// ï¿½zï¿½ï¿½Ftrue
     /// </summary>
     /// <returns></returns>
     private bool Test15()
@@ -296,8 +296,8 @@ public class Test : MonoBehaviour
     }
 
     /// <summary>
-    /// ‰E‚©‚çœœ~‚Å’u‚­
-    /// ‘z’èFfalse
+    /// ï¿½Eï¿½ï¿½ï¿½çœï¿½ï¿½ï¿½~ï¿½Å’uï¿½ï¿½
+    /// ï¿½zï¿½ï¿½Ffalse
     /// </summary>
     /// <returns></returns>
     private bool Test16()
@@ -312,8 +312,8 @@ public class Test : MonoBehaviour
     }
 
     /// <summary>
-    /// ‰E‚©‚çnœ~‚Å’u‚­
-    /// ‘z’èFfalse
+    /// ï¿½Eï¿½ï¿½ï¿½ï¿½nï¿½ï¿½ï¿½~ï¿½Å’uï¿½ï¿½
+    /// ï¿½zï¿½ï¿½Ffalse
     /// </summary>
     /// <returns></returns>
     private bool Test17()
@@ -328,8 +328,8 @@ public class Test : MonoBehaviour
     }
 
     /// <summary>
-    /// ‰E‰º‚©‚çZœ~‚Å’u‚­
-    /// ‘z’èFtrue
+    /// ï¿½Eï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Zï¿½ï¿½ï¿½~ï¿½Å’uï¿½ï¿½
+    /// ï¿½zï¿½ï¿½Ftrue
     /// </summary>
     /// <returns></returns>
     private bool Test18()
@@ -344,8 +344,8 @@ public class Test : MonoBehaviour
     }
 
     /// <summary>
-    /// ‰E‰º‚©‚çœœ~‚Å’u‚­
-    /// ‘z’èFfalse
+    /// ï¿½Eï¿½ï¿½ï¿½ï¿½ï¿½çœï¿½ï¿½ï¿½~ï¿½Å’uï¿½ï¿½
+    /// ï¿½zï¿½ï¿½Ffalse
     /// </summary>
     /// <returns></returns>
     private bool Test19()
@@ -360,8 +360,8 @@ public class Test : MonoBehaviour
     }
 
     /// <summary>
-    /// ‰E‰º‚©‚çnœ~‚Å’u‚­
-    /// ‘z’èFfalse
+    /// ï¿½Eï¿½ï¿½ï¿½ï¿½ï¿½ï¿½nï¿½ï¿½ï¿½~ï¿½Å’uï¿½ï¿½
+    /// ï¿½zï¿½ï¿½Ffalse
     /// </summary>
     /// <returns></returns>
     private bool Test20()
@@ -376,8 +376,8 @@ public class Test : MonoBehaviour
     }
 
     /// <summary>
-    /// ‰º‚©‚çZœ~‚Å’u‚­
-    /// ‘z’èFtrue
+    /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Zï¿½ï¿½ï¿½~ï¿½Å’uï¿½ï¿½
+    /// ï¿½zï¿½ï¿½Ftrue
     /// </summary>
     /// <returns></returns>
     private bool Test21()
@@ -392,8 +392,8 @@ public class Test : MonoBehaviour
     }
 
     /// <summary>
-    /// ‰º‚©‚çœœ~‚Å’u‚­
-    /// ‘z’èFfalse
+    /// ï¿½ï¿½ï¿½ï¿½ï¿½çœï¿½ï¿½ï¿½~ï¿½Å’uï¿½ï¿½
+    /// ï¿½zï¿½ï¿½Ffalse
     /// </summary>
     /// <returns></returns>
     private bool Test22()
@@ -408,8 +408,8 @@ public class Test : MonoBehaviour
     }
 
     /// <summary>
-    /// ‰º‚©‚çnœ~‚Å’u‚­
-    /// ‘z’èFfalse
+    /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½nï¿½ï¿½ï¿½~ï¿½Å’uï¿½ï¿½
+    /// ï¿½zï¿½ï¿½Ffalse
     /// </summary>
     /// <returns></returns>
     private bool Test23()
@@ -424,8 +424,8 @@ public class Test : MonoBehaviour
     }
 
     /// <summary>
-    /// ¶‰º‚©‚çZœ~‚Å’u‚­
-    /// ‘z’èFtrue
+    /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Zï¿½ï¿½ï¿½~ï¿½Å’uï¿½ï¿½
+    /// ï¿½zï¿½ï¿½Ftrue
     /// </summary>
     /// <returns></returns>
     private bool Test24()
@@ -440,8 +440,8 @@ public class Test : MonoBehaviour
     }
 
     /// <summary>
-    /// ¶‰º‚©‚çœœ~‚Å’u‚­
-    /// ‘z’èFfalse
+    /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½çœï¿½ï¿½ï¿½~ï¿½Å’uï¿½ï¿½
+    /// ï¿½zï¿½ï¿½Ffalse
     /// </summary>
     /// <returns></returns>
     private bool Test25()
@@ -456,8 +456,8 @@ public class Test : MonoBehaviour
     }
 
     /// <summary>
-    /// ¶‰º‚©‚çnœ~‚Å’u‚­
-    /// ‘z’èFfalse
+    /// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½nï¿½ï¿½ï¿½~ï¿½Å’uï¿½ï¿½
+    /// ï¿½zï¿½ï¿½Ffalse
     /// </summary>
     /// <returns></returns>
     private bool Test26()
@@ -472,8 +472,8 @@ public class Test : MonoBehaviour
     }
 
     /// <summary>
-    /// ‰E‚©‚çZœ~Aã‚©‚çœœ~
-    /// ‘z’èFtrue
+    /// ï¿½Eï¿½ï¿½ï¿½ï¿½Zï¿½ï¿½ï¿½~ï¿½Aï¿½ã‚©ï¿½çœï¿½ï¿½ï¿½~
+    /// ï¿½zï¿½ï¿½Ftrue
     /// </summary>
     private bool Test27()
     {
@@ -490,8 +490,8 @@ public class Test : MonoBehaviour
     }
 
     /// <summary>
-    /// ‰E‚©‚çœœ~Aã‚©‚çœœ~
-    /// ‘z’èFfalse
+    /// ï¿½Eï¿½ï¿½ï¿½çœï¿½ï¿½ï¿½~ï¿½Aï¿½ã‚©ï¿½çœï¿½ï¿½ï¿½~
+    /// ï¿½zï¿½ï¿½Ffalse
     /// </summary>
     private bool Test28()
     {
@@ -508,8 +508,8 @@ public class Test : MonoBehaviour
     }
 
     /// <summary>
-    /// ‰E‚©‚çZœ~Aã‚©‚çZœ~
-    /// ‘z’èFtrue
+    /// ï¿½Eï¿½ï¿½ï¿½ï¿½Zï¿½ï¿½ï¿½~ï¿½Aï¿½ã‚©ï¿½ï¿½Zï¿½ï¿½ï¿½~
+    /// ï¿½zï¿½ï¿½Ftrue
     /// </summary>
     private bool Test29()
     {
@@ -539,4 +539,34 @@ public class Test : MonoBehaviour
             }
         }
     }
+
+    private void Test30()
+    {
+        Test31 temp1 = new Test31();
+        temp1.Child = new Test31();
+        temp1.Child.Child = new Test31();
+    }
+
+    private Test31 Test31(Test31 test31)
+    {
+        return Test31(test31.Child);
+    }
+
+    private Test31 Test32(Test31 test31)
+    {
+        Test31 temp1 = test31;
+        while (true)
+        {
+            temp1 = temp1.Child;
+            if (temp1.Child == null)
+            {
+                break;
+            }
+        }
+        return temp1;
+    }
+}
+public class Test31
+{
+    public Test31 Child;
 }

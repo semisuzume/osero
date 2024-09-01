@@ -6,9 +6,9 @@ using static UnityEngine.Networking.UnityWebRequest;
 public class BoardManagement : MonoBehaviour
 {
     /// <summary>
-    /// �����P,
-    /// ����-1,
-    /// null��0
+    /// 白 = 1,
+    /// 黒 = -1,
+    /// null=0
     /// </summary>
     public int[,] piecePosition = new int[8, 8];
     GameManagement gameManagement;
@@ -64,6 +64,19 @@ public class BoardManagement : MonoBehaviour
                 printString += piecePosition[Y, X] + ",";
             }
             Debug.Log(printString);
+        }
+    }
+
+    public void ListPrint(int[,] list)
+    {
+        for (int i = 0; i < list.GetLength(0); i++)
+        {
+            string str = "";
+            for (int j = 0; j < list.GetLength(1); j++)
+            {
+                str = str + list[i, j] + " ";
+            }
+            Debug.Log(str);
         }
     }
 
@@ -153,7 +166,8 @@ public class BoardManagement : MonoBehaviour
         for (int i = 0; i < piecePosition.GetLength(0); i++)
         {
             for (int j = 0; j < piecePosition.GetLength(1); j++)
-            {                if (Judge(turn, new Vector2Int(i, j)) > 0)
+            {
+                if (Judge(turn, new Vector2Int(i, j)) > 0)
                 {
                     return true;
                 }
@@ -209,6 +223,7 @@ public class BoardManagement : MonoBehaviour
         return points;
     }
 
+    // ArrangementDirectから帰ってきた情報をまとめて反映する
     public void Arrangement(int turn)
     {
         int player = -2 * (turn % 2) + 1;
@@ -220,6 +235,7 @@ public class BoardManagement : MonoBehaviour
         }
     }
 
+    // ひっくり返す方向と枚数を探索する。
     public List<Vector2Int> ArrangementDirect(int player)
     {
         List<Vector2Int> allResults = new List<Vector2Int>();

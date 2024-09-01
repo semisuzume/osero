@@ -40,14 +40,6 @@ public class GameManagement : MonoBehaviour
         StartCoroutine("ModeratorFacilitator");//→変更：ModeratorFacilitator()
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        Debug.Log("");
-    }
-
-
-
     IEnumerator ModeratorFacilitator()//前回追加したところ
     {
         while (true)
@@ -64,7 +56,6 @@ public class GameManagement : MonoBehaviour
                     state = State.SelectionPlayer;
                     break;
                 case State.SelectionPlayer:
-                    Debug.Log(state);
                     if (!boardManagement.BlockageJudgment(playerTurn, blockageCounter))
                     {
                         Debug.Log("手番交代");
@@ -91,7 +82,7 @@ public class GameManagement : MonoBehaviour
                     cpu.Copy(boardManagement.piecePosition);
                     cellpos = cpu.Action(playerTurn);
                     boardManagement.index = cellpos;
-                    yield return new WaitForSeconds(1);//前回追加したところ
+                    yield return new WaitForSeconds(1);
                     state = State.Judgement;
                     break;
                 case State.Judgement:
