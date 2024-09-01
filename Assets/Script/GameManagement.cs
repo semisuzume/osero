@@ -79,8 +79,7 @@ public class GameManagement : MonoBehaviour
                     }
                     break;
                 case State.SelectionCPU:
-                    cpu.Copy(boardManagement.piecePosition);
-                    cellpos = cpu.Action(playerTurn);
+                    cellpos = cpu.Action(playerTurn, boardManagement.piecePosition);
                     boardManagement.index = cellpos;
                     yield return new WaitForSeconds(1);
                     state = State.Judgement;

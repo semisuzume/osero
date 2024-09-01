@@ -3,7 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor.SceneManagement;
+using UnityEditor.Search;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class ListComparer : IEqualityComparer<List<int>>
 {
@@ -51,9 +53,10 @@ public class CPU : MonoBehaviour
     // List<MaxProfitPosition> profitPositionList = new List<MaxProfitPosition>();
     // Vector2Int[] vector2Ints = new Vector2Int[64];
     // List<List<Vector2Int>> threeMoveAheadPatterns = new List<List<Vector2Int>>();
-    Dictionary<List<int>, MaxProfitPosition> profitPositionList = new Dictionary<List<int>, MaxProfitPosition>(new ListComparer());
-    Dictionary<List<int>, MaxProfitPosition> profitPositionListCopy = new Dictionary<List<int>, MaxProfitPosition>();
+    Dictionary<string, MaxProfitPosition> profitPositionList = new Dictionary<string, MaxProfitPosition>();
+    Dictionary<string, MaxProfitPosition> profitPositionListCopy = new Dictionary<string, MaxProfitPosition>();
     FunctionStorage storage;
+    int difficulty = 5;
 
     // Start is called before the first frame update
     void Start()
@@ -71,33 +74,50 @@ public class CPU : MonoBehaviour
                 piecePositionCopy[i, j] = originalData[i, j];
                 str = str + piecePositionCopy[i, j] + " ";
             }
-            Debug.Log(str);
         }
     }
 
     //探索はFindValidMovesが行う（指定回数実行する）
     //FindValidMovesが探索した結果をprofitPositionListに入れその結果を基に一番利益が出る手をVector2Intで返す
-    public Vector2Int Action(int turn)
+    public Vector2Int Action(int turn, int[,] originalData)
     {
-        MaxProfitPosition temp = new MaxProfitPosition()
-        {
-            MaxFlipCount = 0
-        };
+        MaxProfitPosition temp = new MaxProfitPosition();
         profitPositionList.Clear();
-        profitPositionList.Add(new List<int> { -1 }, new MaxProfitPosition() { SelectedPosition = new Vector2Int(-1, -1) });
-        for (int progress = 0; progress < 3; progress++)
+        profitPositionListCopy.Clear();
+        profitPositionList.Add(",-1", new MaxProfitPosition() { SelectedPosition = new Vector2Int(-1, -1) });
+        for (int progress = 0; progress < difficulty; progress++)
         {
-            profitPositionList = profitPositionList.Concat(FindValidMoves(turn, progress, profitPositionList, piecePositionCopy).Where(pair => !profitPositionList.ContainsKey(pair.Key))).ToDictionary(dicPair => dicPair.Key, dicPair => dicPair.Value);
-        }
-        foreach (List<int> key in profitPositionList.Keys)
-        {
-            if (temp.MaxFlipCount < profitPositionList[key].MaxFlipCount)
+            profitPositionList = profitPositionList.Concat(FindValidMoves(turn, progress, profitPositionList, originalData).Where(pair => !profitPositionList.ContainsKey(pair.Key))).ToDictionary(dicPair => dicPair.Key, dicPair => dicPair.Value);
+            if (progress == 0)
             {
-                Debug.Log(key);
-                temp = profitPositionList[key];
+                profitPositionList.Remove(",-1");
             }
         }
-        Debug.Log("temp:" + temp.SelectedPosition);
+        foreach (string key in profitPositionList.Keys.Where(key => ReturnKeyElement(key, ",").Count == difficulty - 1))
+        {
+            UpdatePiecePositionCopy(turn, difficulty - 1, key, piecePositionCopy);
+            EvaluationFunction(piecePositionCopy);
+        }
+        foreach (string key in profitPositionList.Keys)
+        {
+            string keyCode = "";
+            int finalResult = 0;
+            if (ReturnKeyElement(key, ",").Count != difficulty) continue;
+            for (int i = 0; i < difficulty; i++)
+            {
+                keyCode = null;
+                for (int j = 0; j <= i; j++)
+                {
+                    keyCode += "," + ReturnKeyElement(key, ",")[j];
+                }
+                finalResult += profitPositionList[keyCode].MaxFlipCount;
+            }
+            if (temp.MaxFlipCount < finalResult)
+            {
+                Debug.Log(key);
+                temp = profitPositionList["," + ReturnKeyElement(keyCode, ",")[0]];
+            }
+        }
         return temp.SelectedPosition;
     }
 
@@ -110,27 +130,30 @@ public class CPU : MonoBehaviour
     //一枚でもひっくり返せるのなら（124行）、AssignToListを用いてprofitPositionLsitCopyに保存する
     //全ての探索が終わったらprofitPositionListに統合する
     //ターン数を経過させる
-    public Dictionary<List<int>, MaxProfitPosition> FindValidMoves(int turn, int progress, Dictionary<List<int>, MaxProfitPosition> profitPositionList, int[,] defaultBoard)
+    public Dictionary<string, MaxProfitPosition> FindValidMoves(int turn, int progress, Dictionary<string, MaxProfitPosition> profitPositionList, int[,] defaultBoard)
     {
-        foreach (List<int> key in profitPositionList.Keys)
+        foreach (string key in profitPositionList.Keys) //keyから一つ選択
         {
+            string originKeyInformation = null;
             if (progress == 0) { }
-            else if (key.Count != progress) continue;
-            UpdatePiecePositionCopy(turn, progress, key);// コピー盤面を用意
-            for (int i = 0; i < piecePositionCopy.GetLength(0); i++)
+            else if (ReturnKeyElement(key, ",").Count != progress) continue; //探索済みのkeyを弾く
+            else { originKeyInformation = key;/*末尾にKeyToSpecifyを追加する*/}
+            UpdatePiecePositionCopy(turn, progress, key, defaultBoard);// コピー盤面を用意
+            bool skipCheck = false;
+            for (int i = 0; i < defaultBoard.GetLength(0); i++)
             {
-                for (int j = 0; j < piecePositionCopy.GetLength(1); j++)// 64マス全探索
+                for (int j = 0; j < defaultBoard.GetLength(1); j++)// 64マス全探索
                 {
-                    List<int> keyInformation = new List<int>(key);
                     MaxProfitPosition valueInformation = new MaxProfitPosition();
-                    int tempCount = Judge(turn, new Vector2Int(i, j));
-                    int keyToSpecify = 1;
-                    if (tempCount > 0)
+                    int tempCount = (-2 * (progress % 2) + 1) * Judge(turn, new Vector2Int(i, j)); //ポイントi,jに駒を置いた場合にひっくり返せる枚数を探索
+                    int keyToSpecify = 1;//Dictionaryのkeyの初期値
+                    if (tempCount != 0)
                     {
+                        string keyInformation;
+                        skipCheck = true;
                         do
                         {
-                            keyInformation.RemoveAt(progress);
-                            keyInformation.Insert(progress, keyToSpecify);
+                            keyInformation = originKeyInformation + "," + keyToSpecify.ToString();
                             keyToSpecify++;
                         } while (profitPositionListCopy.ContainsKey(keyInformation));
                         valueInformation.MaxFlipCount = tempCount;
@@ -139,23 +162,45 @@ public class CPU : MonoBehaviour
                     }
                 }
             }
+            if (!skipCheck)
+            {
+                profitPositionListCopy.Add(originKeyInformation + ",", new MaxProfitPosition() { MaxFlipCount = 0 });
+            }
         }
         // 一時保存したデータを返す
         return profitPositionListCopy;
     }
 
+    private int EvaluationFunction(int[,] evaluationTarget)
+    {
+        //確定石の計算
+        foreach(Vector2Int pos in storage.cornerPos)
+        {
+            int pieceColor = evaluationTarget[pos.x, pos.y];
+            for(int i = 0; i < 2; i++)
+            {
+                int result = i == 0 ? pos.x : pos.y;
+                
+            }
+        }
+        return 0;
+    }
+
     //引数：現在のターン数、何手目まで探索したか、探索したい枝のkey
     //keyの要素を順番に取り出しその要素を持つListを作成する・・・⓵
     //⓵で作ったListをkeyに持つMaxProfitPosition.SelectedPositionを取得しそこに打った場合の盤面を再現する
-    private void UpdatePiecePositionCopy(int turn, int progress, List<int> key)
+    private void UpdatePiecePositionCopy(int turn, int progress, string key, int[,] defaultBoard)
     {
+        Copy(defaultBoard);
         List<List<int>> keysCopy = new List<List<int>>();// 指定するためのList
-        for (int i = 0; i <= progress; i++)// 現在のprogressの分だけkeyからコピーする
+        for (int i = 0; i <= progress - 1; i++)// 現在のprogressの分だけkeyからコピーする
         {
-            List<int> stac = new List<int>();
+            turn += i;
+            if (ReturnKeyElement(key, ",")[i] == null) continue;
+            string stac = null;
             for (int j = 0; j <= i; j++)
             {
-                stac = new List<int> { key[i] };
+                stac += "," + ReturnKeyElement(key, ",")[j];
             }
             if (profitPositionList.ContainsKey(stac))
             {
@@ -230,7 +275,6 @@ public class CPU : MonoBehaviour
         int points = 0;
         foreach (Vector2Int d in storage.directVector)
         {
-
             Vector2Int now = index + d;
             int directionPoints = 0;
 
@@ -256,19 +300,6 @@ public class CPU : MonoBehaviour
         return points;
     }
 
-    private void AssignToList(Dictionary<List<int>, MaxProfitPosition> list, List<int> key, MaxProfitPosition element)
-    {
-        list.Add(key, element);
-    }
-
-    private void AssignToList(Dictionary<List<int>, MaxProfitPosition> list, Dictionary<List<int>, MaxProfitPosition> list2)
-    {
-        foreach (List<int> keyCopy in list2.Keys)
-        {
-            AssignToList(list, keyCopy, list2[keyCopy]);
-        }
-    }
-
     private void Assignment(int x, int y, int color)
     {
         piecePositionCopy[y, x] = color;
@@ -279,19 +310,6 @@ public class CPU : MonoBehaviour
         Assignment(location.x, location.y, color);
     }
 
-    private void AllDelete(Dictionary<List<int>, MaxProfitPosition> list)
-    {
-        List<List<int>> keys = new List<List<int>>();
-        foreach (List<int> key in list.Keys)
-        {
-            keys.Add(key);
-        }
-        foreach (List<int> key in keys)
-        {
-            list.Remove(key);
-        }
-    }
-
     public string ListPrint(IReadOnlyList<int> ints)
     {
         string a = "";
@@ -300,5 +318,12 @@ public class CPU : MonoBehaviour
             a += " " + keyCopy;
         }
         return a;
+    }
+
+    private List<string> ReturnKeyElement(string checkSource, string separatorString)
+    {
+        List<string> Items = checkSource.Split(separatorString).ToList();
+        Items.RemoveAt(0);
+        return Items;
     }
 }
