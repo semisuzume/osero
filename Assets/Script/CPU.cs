@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using UnityEditor.SceneManagement;
 using UnityEditor.Search;
 using UnityEngine;
@@ -17,7 +18,7 @@ public class ListComparer : IEqualityComparer<List<int>>
         if (x.Count != y.Count)
             return false;
 
-        for (int i = 0; i < x.Count; i++)
+        for (int i = 0; i < x.Count; ++i)
         {
             if (x[i] != y[i])
                 return false;
@@ -57,7 +58,6 @@ public class CPU : MonoBehaviour
     Dictionary<string, MaxProfitPosition> profitPositionListCopy = new Dictionary<string, MaxProfitPosition>();
     FunctionStorage storage;
     int difficulty = 5;
-
     // Start is called before the first frame update
     void Start()
     {
@@ -96,7 +96,7 @@ public class CPU : MonoBehaviour
         foreach (string key in profitPositionList.Keys.Where(key => ReturnKeyElement(key, ",").Count == difficulty - 1))
         {
             UpdatePiecePositionCopy(turn, difficulty - 1, key, piecePositionCopy);
-            EvaluationFunction(piecePositionCopy);
+            EvaluationFunction(piecePositionCopy, difficulty);
         }
         foreach (string key in profitPositionList.Keys)
         {
@@ -171,17 +171,54 @@ public class CPU : MonoBehaviour
         return profitPositionListCopy;
     }
 
-    private int EvaluationFunction(int[,] evaluationTarget)
+    private int EvaluationFunction(int[,] evaluationTarget, int difficultyCopy)
     {
         //確定石の計算
-        foreach(Vector2Int pos in storage.cornerPos)
+        ConfirmedStoneCount(evaluationTarget);
+        return 0;
+    }
+
+    private class SearchInformation
+    {
+        public int vertical;
+        public int horizontal;
+        public int maxCount;
+        public int additionDirection;
+        public bool searchDirect;
+    };
+
+    private int ConfirmedStoneCount(int[,] evaluationTarget)
+    {
+        foreach (Vector2Int pos in storage.cornerPos)
         {
             int pieceColor = evaluationTarget[pos.x, pos.y];
-            for(int i = 0; i < 2; i++)
+            if (pieceColor == 0) continue;
+            SearchInformation searchInformation = new SearchInformation{};
+            searchInformation.searchDirect = false;
+            searchInformation.additionDirection = pos.x == 0 ? 1 : -1;
+            //x座標方向に探索
+            for (int i = 1; i <= 7; i++)
             {
-                int result = i == 0 ? pos.x : pos.y;
-                
+                if (evaluationTarget[pos.x + (searchInformation.additionDirection * i), pos.y] == pieceColor)
+                {
+                    searchInformation.vertical++;
+                }
             }
+            //y座標方向に探索
+            searchInformation.additionDirection = pos.y == 0 ? 1 : -1;
+            for (int i = 1; i <= 7; i++)
+            {
+                if (evaluationTarget[pos.x, pos.y + (searchInformation.additionDirection * i)] == pieceColor)
+                {
+                    searchInformation.horizontal++;
+                }
+            }
+            if (searchInformation.horizontal >= searchInformation.vertical)
+            {
+                searchInformation.maxCount = searchInformation.horizontal;
+                searchInformation.searchDirect = true;
+            }
+            
         }
         return 0;
     }
