@@ -46,6 +46,7 @@ public class CPU : MonoBehaviour
 {
     public class MaxProfitPosition
     {
+        public bool [,] ConfirmedStone = new bool[8,8];
         public Vector2Int SelectedPosition;
         public int turn;
         public int MaxFlipCount;
@@ -189,6 +190,7 @@ public class CPU : MonoBehaviour
 
     private int ConfirmedStoneCount(int[,] evaluationTarget)
     {
+        bool [,] verificationFlag = new bool[8,8];
         foreach (Vector2Int pos in storage.cornerPos)
         {
             int pieceColor = evaluationTarget[pos.x, pos.y];
@@ -218,7 +220,10 @@ public class CPU : MonoBehaviour
                 searchInformation.maxCount = searchInformation.horizontal;
                 searchInformation.searchDirect = true;
             }
-            
+            if(searchInformation.searchDirect == true)
+            {
+                
+            }
         }
         return 0;
     }
