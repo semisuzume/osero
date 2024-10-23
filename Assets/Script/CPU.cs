@@ -46,7 +46,7 @@ public class CPU : MonoBehaviour
 {
     public class MaxProfitPosition
     {
-        public bool [,] ConfirmedStone = new bool[8,8];
+        public bool[,] ConfirmedStone = new bool[8, 8];
         public Vector2Int SelectedPosition;
         public int turn;
         public int MaxFlipCount;
@@ -57,8 +57,9 @@ public class CPU : MonoBehaviour
     // List<List<Vector2Int>> threeMoveAheadPatterns = new List<List<Vector2Int>>();
     Dictionary<string, MaxProfitPosition> profitPositionList = new Dictionary<string, MaxProfitPosition>();
     Dictionary<string, MaxProfitPosition> profitPositionListCopy = new Dictionary<string, MaxProfitPosition>();
+    BoardManagement boardManagement;
     FunctionStorage storage;
-    int difficulty = 5;
+    int difficulty = 6;
     // Start is called before the first frame update
     void Start()
     {
@@ -183,47 +184,89 @@ public class CPU : MonoBehaviour
     {
         public int vertical;
         public int horizontal;
-        public int maxCount;
-        public int additionDirection;
+        public int occupancyRate;
+        public Vector2Int additionDirection;
         public bool searchDirect;
     };
 
     private int ConfirmedStoneCount(int[,] evaluationTarget)
     {
-        bool [,] verificationFlag = new bool[8,8];
-        foreach (Vector2Int pos in storage.cornerPos)
+        int confirmedStone = 0;
+        bool[,] verificationFlag = new bool[8, 8];
+        foreach (Vector2Int cornerPos in storage.cornerPos)
         {
-            int pieceColor = evaluationTarget[pos.x, pos.y];
+            int pieceColor = evaluationTarget[cornerPos.x, cornerPos.y];
             if (pieceColor == 0) continue;
-            SearchInformation searchInformation = new SearchInformation{};
+            else ++confirmedStone;
+            SearchInformation searchInformation = new SearchInformation { };
             searchInformation.searchDirect = false;
-            searchInformation.additionDirection = pos.x == 0 ? 1 : -1;
             //x座標方向に探索
             for (int i = 1; i <= 7; i++)
             {
-                if (evaluationTarget[pos.x + (searchInformation.additionDirection * i), pos.y] == pieceColor)
+                searchInformation.additionDirection.x = cornerPos.x == 0 ? 1 : -1;
+                if (evaluationTarget[cornerPos.x + (searchInformation.additionDirection.x * i), cornerPos.y] != pieceColor) break;
+                else 
                 {
                     searchInformation.vertical++;
                 }
             }
             //y座標方向に探索
-            searchInformation.additionDirection = pos.y == 0 ? 1 : -1;
             for (int i = 1; i <= 7; i++)
             {
-                if (evaluationTarget[pos.x, pos.y + (searchInformation.additionDirection * i)] == pieceColor)
+                searchInformation.additionDirection.y = cornerPos.y == 0 ? 1 : -1;
+                if (evaluationTarget[cornerPos.x, cornerPos.y + (searchInformation.additionDirection.y * i)] == pieceColor)
                 {
                     searchInformation.horizontal++;
                 }
             }
+            confirmedStone = searchInformation.vertical + searchInformation.horizontal;
             if (searchInformation.horizontal >= searchInformation.vertical)
             {
-                searchInformation.maxCount = searchInformation.horizontal;
+                searchInformation.occupancyRate = searchInformation.horizontal;
                 searchInformation.searchDirect = true;
             }
-            if(searchInformation.searchDirect == true)
+            else
             {
-                
+                searchInformation.occupancyRate = searchInformation.vertical;
+                searchInformation.searchDirect = false;
             }
+            int searchLimit = searchInformation.occupancyRate;
+            Vector2Int searchPos = new Vector2Int(0, 0);
+            if (searchInformation.searchDirect == true)// serchInformation.horizontalがverticalよりも大きい
+            {
+                for (int i = 0; i < searchInformation.vertical; i++)
+                {
+                    searchPos = new Vector2Int(cornerPos.x + (searchInformation.vertical * searchInformation.additionDirection.x) + (-searchInformation.additionDirection.x * i), cornerPos.y + (searchInformation.horizontal * searchInformation.additionDirection.y) + (-searchInformation.additionDirection.y * i));
+                    Debug.Log(searchPos);
+                    if (evaluationTarget[searchPos.x, searchPos.y] == pieceColor)
+                    {
+                        searchLimit = searchLimit > searchPos.y ? searchPos.y : searchLimit; //searchLimit > searchPos.yならsearchLimit = searchPos.y;
+                        for (int searchFocus = 0; searchFocus < searchLimit; ++searchFocus)
+                        {
+                            if (evaluationTarget[searchPos.x, searchFocus] != pieceColor) searchLimit = searchFocus - 1;
+                            else ++confirmedStone;
+                        }
+                    }
+                }
+            }
+            else if (searchInformation.searchDirect == false)
+            {
+                for (int i = 0; i < searchInformation.horizontal; i++)
+                {
+                    searchPos = new Vector2Int(cornerPos.x + (searchInformation.vertical * searchInformation.additionDirection.x) + (-searchInformation.additionDirection.x * i), cornerPos.y + (searchInformation.horizontal * searchInformation.additionDirection.y) + (-searchInformation.additionDirection.y * i));
+                    Debug.Log("searchPos :" + searchPos);
+                    if (evaluationTarget[searchPos.x, searchPos.y] == pieceColor)
+                    {
+                        searchLimit = searchLimit > searchPos.x ? searchPos.x : searchLimit; //searchLimit > searchPos.yならsearchLimit = searchPos.y;
+                        for (int searchFocus = 0; searchFocus < searchLimit; ++searchFocus)
+                        {
+                            if (evaluationTarget[searchFocus, searchPos.y] != pieceColor) searchLimit = searchFocus - 1;
+                            else ++confirmedStone;
+                        }
+                    }
+                }
+            }
+
         }
         return 0;
     }

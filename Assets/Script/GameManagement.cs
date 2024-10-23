@@ -59,6 +59,7 @@ public class GameManagement : MonoBehaviour
                     if (!boardManagement.BlockageJudgment(playerTurn, blockageCounter))
                     {
                         Debug.Log("手番交代");
+                        boardManagement.index = new Vector2Int(-1, -1);
                         state = State.Change;
                     }
                     if (Input.GetMouseButtonUp(0))
