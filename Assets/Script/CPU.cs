@@ -174,6 +174,7 @@ public class CPU : MonoBehaviour
         return profitPositionListCopy;
     }
 
+    //渡された一つの盤面に対して実行する
     private int EvaluationFunction(int[,] evaluationTarget, int difficultyCopy)
     {
         //確定石の計算
@@ -270,6 +271,22 @@ public class CPU : MonoBehaviour
         }
         Debug.Log(confirmedStone);
         return confirmedStone;
+    }
+
+    private int  SelectableLocationSearcher(int turn)
+    {
+        int SelectableLocation = 0;
+        for (int i = 0; i < piecePositionCopy.GetLength(0); ++i)
+        {
+            for (int j = 0; j < piecePositionCopy.GetLength(1); ++j)
+            {
+                if (Judge(turn, new Vector2Int(i,j)) > 0)
+                {
+                    ++SelectableLocation;
+                }
+            }
+        }
+        return SelectableLocation;
     }
 
     //引数：現在のターン数、何手目まで探索したか、探索したい枝のkey
