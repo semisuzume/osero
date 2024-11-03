@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using UnityEditor.SceneManagement;
@@ -59,7 +60,7 @@ public class CPU : MonoBehaviour
     Dictionary<string, MaxProfitPosition> profitPositionListCopy = new Dictionary<string, MaxProfitPosition>();
     BoardManagement boardManagement;
     FunctionStorage storage;
-    int difficulty = 6;
+    int difficulty = 3;
     // Start is called before the first frame update
     void Start()
     {
@@ -176,8 +177,7 @@ public class CPU : MonoBehaviour
     private int EvaluationFunction(int[,] evaluationTarget, int difficultyCopy)
     {
         //確定石の計算
-        ConfirmedStoneCount(evaluationTarget);
-        return 0;
+        return ConfirmedStoneCount(evaluationTarget);
     }
 
     private class SearchInformation
@@ -196,6 +196,7 @@ public class CPU : MonoBehaviour
         foreach (Vector2Int cornerPos in storage.cornerPos)
         {
             int pieceColor = evaluationTarget[cornerPos.x, cornerPos.y];
+            int colorSwitch = pieceColor == 1 ? 1 : -1;
             if (pieceColor == 0) continue;
             else ++confirmedStone;
             SearchInformation searchInformation = new SearchInformation { };
@@ -205,7 +206,7 @@ public class CPU : MonoBehaviour
             {
                 searchInformation.additionDirection.x = cornerPos.x == 0 ? 1 : -1;
                 if (evaluationTarget[cornerPos.x + (searchInformation.additionDirection.x * i), cornerPos.y] != pieceColor) break;
-                else 
+                else
                 {
                     searchInformation.vertical++;
                 }
@@ -237,7 +238,7 @@ public class CPU : MonoBehaviour
                 for (int i = 0; i < searchInformation.vertical; i++)
                 {
                     searchPos = new Vector2Int(cornerPos.x + (searchInformation.vertical * searchInformation.additionDirection.x) + (-searchInformation.additionDirection.x * i), cornerPos.y + (searchInformation.horizontal * searchInformation.additionDirection.y) + (-searchInformation.additionDirection.y * i));
-                    Debug.Log(searchPos);
+                    // Debug.Log(searchPos);
                     if (evaluationTarget[searchPos.x, searchPos.y] == pieceColor)
                     {
                         searchLimit = searchLimit > searchPos.y ? searchPos.y : searchLimit; //searchLimit > searchPos.yならsearchLimit = searchPos.y;
@@ -254,7 +255,7 @@ public class CPU : MonoBehaviour
                 for (int i = 0; i < searchInformation.horizontal; i++)
                 {
                     searchPos = new Vector2Int(cornerPos.x + (searchInformation.vertical * searchInformation.additionDirection.x) + (-searchInformation.additionDirection.x * i), cornerPos.y + (searchInformation.horizontal * searchInformation.additionDirection.y) + (-searchInformation.additionDirection.y * i));
-                    Debug.Log("searchPos :" + searchPos);
+                    // Debug.Log("searchPos :" + searchPos);
                     if (evaluationTarget[searchPos.x, searchPos.y] == pieceColor)
                     {
                         searchLimit = searchLimit > searchPos.x ? searchPos.x : searchLimit; //searchLimit > searchPos.yならsearchLimit = searchPos.y;
@@ -266,9 +267,9 @@ public class CPU : MonoBehaviour
                     }
                 }
             }
-
         }
-        return 0;
+        Debug.Log(confirmedStone);
+        return confirmedStone;
     }
 
     //引数：現在のターン数、何手目まで探索したか、探索したい枝のkey
