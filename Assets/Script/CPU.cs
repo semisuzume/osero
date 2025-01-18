@@ -43,21 +43,26 @@ public class ListComparer : IEqualityComparer<List<int>>
     }
 }
 
+public class MaxProfitPosition
+{
+    public bool[,] ConfirmedStone = new bool[8, 8];
+    public Vector2Int SelectedPosition;
+    public int turn;
+    public int MaxFlipCount;
+    /// <summary>
+    /// 確定石
+    /// </summary>
+    public int StaticStoneCount;
+}
+
+/// <summary>
+/// 置ける手の探索と選択
+/// </summary>
 public class CPU : MonoBehaviour
 {
-    public class MaxProfitPosition
-    {
-        public bool[,] ConfirmedStone = new bool[8, 8];
-        public Vector2Int SelectedPosition;
-        public int turn;
-        public int MaxFlipCount;
-    }
     public int[,] piecePositionCopy = new int[8, 8];
-    // List<MaxProfitPosition> profitPositionList = new List<MaxProfitPosition>();
-    // Vector2Int[] vector2Ints = new Vector2Int[64];
-    // List<List<Vector2Int>> threeMoveAheadPatterns = new List<List<Vector2Int>>();
     Dictionary<string, MaxProfitPosition> profitPositionList = new Dictionary<string, MaxProfitPosition>();
-    Dictionary<string, MaxProfitPosition> profitPositionListCopy = new Dictionary<string, MaxProfitPosition>();
+    Dictionary<string, MaxProfitPosition> searchResults = new Dictionary<string, MaxProfitPosition>();
     BoardManagement boardManagement;
     FunctionStorage storage;
     int difficulty = 3;
@@ -67,6 +72,10 @@ public class CPU : MonoBehaviour
         storage = GetComponent<FunctionStorage>();
     }
 
+    /// <summary>
+    /// BordManagementが保持している盤面CPU内でいじる用の盤面にコピーする
+    /// </summary>
+    /// <param name="originalData">元データ</param>
     public void Copy(int[,] originalData)
     {
         for (int i = 0; i < piecePositionCopy.GetLength(0); i++)
@@ -80,33 +89,43 @@ public class CPU : MonoBehaviour
         }
     }
 
-    //探索はFindValidMovesが行う（指定回数実行する）
-    //FindValidMovesが探索した結果をprofitPositionListに入れその結果を基に一番利益が出る手をVector2Intで返す
-    public Vector2Int Action(int turn, int[,] originalData)
+    /// <summary>
+    /// Dictionaryの初期化と探索用関数を指定回数呼び出して結果を結合する
+    /// </summary>
+    /// <param name="turn">経過ターン数</param>
+    /// <param name="originalData">現在の盤面</param>
+    public void Action(bool isPlayerFirst, int turn, int[,] originalData)
     {
-        MaxProfitPosition temp = new MaxProfitPosition();
-        profitPositionList.Clear();
-        profitPositionListCopy.Clear();
-        profitPositionList.Add(",-1", new MaxProfitPosition() { SelectedPosition = new Vector2Int(-1, -1) });
+        searchResults.Clear();
+        if (turn == 1) profitPositionList.Add(",-1", new MaxProfitPosition() { SelectedPosition = new Vector2Int(-1, -1) });
         for (int progress = 0; progress < difficulty; progress++)
         {
-            profitPositionList = profitPositionList.Concat(FindValidMoves(turn, progress, profitPositionList, originalData).Where(pair => !profitPositionList.ContainsKey(pair.Key))).ToDictionary(dicPair => dicPair.Key, dicPair => dicPair.Value);
+            profitPositionList = profitPositionList.Concat(FindValidMoves(turn, progress, profitPositionList, originalData)
+                                                    .Where(pair => !profitPositionList.ContainsKey(pair.Key)))
+                                                    .ToDictionary(dicPair => dicPair.Key, dicPair => dicPair.Value);
             if (progress == 0)
             {
                 profitPositionList.Remove(",-1");
             }
         }
-        foreach (string key in profitPositionList.Keys.Where(key => ReturnKeyElement(key, ",").Count == difficulty - 1))
-        {
-            UpdatePiecePositionCopy(turn, difficulty - 1, key, piecePositionCopy);
-            EvaluationFunction(piecePositionCopy, difficulty);
-        }
+    }
+
+    /// <summary>
+    /// profitPositionListから最適な手を選択する
+    /// </summary>
+    /// <param name="turn">経過ターン数</param>
+    /// <returns></returns>
+    public Vector2Int ChoiceBranch(bool isPlayerFirst, int turn)
+    {
+        string selectedKey = "";
+        MaxProfitPosition temp = new MaxProfitPosition();
+        temp.MaxFlipCount = 0;
         foreach (string key in profitPositionList.Keys)
         {
             string keyCode = "";
             int finalResult = 0;
-            if (ReturnKeyElement(key, ",").Count != difficulty) continue;
-            for (int i = 0; i < difficulty; i++)
+            if (ReturnKeyElement(key, ",").Count != (turn == 0 ? turn : CountMyTurn(turn)) * difficulty) continue;
+            for (int i = 0; i < (turn == 0 ? turn : CountMyTurn(turn)) * difficulty; i++)
             {
                 keyCode = null;
                 for (int j = 0; j <= i; j++)
@@ -117,15 +136,22 @@ public class CPU : MonoBehaviour
             }
             if (temp.MaxFlipCount < finalResult)
             {
-                Debug.Log(key);
-                temp = profitPositionList["," + ReturnKeyElement(keyCode, ",")[0]];
+                selectedKey = keyCode.Substring(0, isPlayerFirst ? (turn * 2) : (turn * 2) + 1);
+                temp = profitPositionList[selectedKey];
+                Debug.Log("selectedKey: " + "<color=green>" + selectedKey + "</color>");
+                Debug.Log("keyCode: " + "<color=green>" + keyCode + "</color>");
+            }
+            else if (finalResult == 0 && temp.MaxFlipCount == 0)
+            {
+                selectedKey = keyCode.Substring(0, isPlayerFirst ? (turn * 2) : (turn * 2) + 1);
+                temp = profitPositionList[selectedKey];
             }
         }
+        RemoveUnnecessary(selectedKey);
         return temp.SelectedPosition;
     }
 
     //引数:現在のターン数、何手目まで探索したか、n手目で置ける場所の保存されているDictionary、現在の盤面情報
-    //戻り値:ｎ+1手目で置ける場所の保存されているDictionary
     //foreachを使っている為、直接profitPositionListの編集ができない、そのためCopyに候補を入れ戻り値で返す
     //profitPositionListからkeyのprogressの値と同じkeyの長さを持つ現在探索できている候補地を取り出す
     //112行目で取り出した候補地に駒を実際に置いた場合の盤面の再現を114行目のUpdatePiecePositionCopyで行う
@@ -133,22 +159,35 @@ public class CPU : MonoBehaviour
     //一枚でもひっくり返せるのなら（124行）、AssignToListを用いてprofitPositionLsitCopyに保存する
     //全ての探索が終わったらprofitPositionListに統合する
     //ターン数を経過させる
+    /// <summary>
+    /// 置ける手を全探索
+    /// </summary>
+    /// <param name="turn">経過ターン数</param>
+    /// <param name="progress">何手まで探索したか</param>
+    /// <param name="profitPositionList">今まで何処に置いたかの保存に使う</param>
+    /// <param name="defaultBoard">プレイヤーが見てる盤面</param>
+    /// <returns>ｎ+1手目で置ける場所の保存されているDictionary</returns>
     public Dictionary<string, MaxProfitPosition> FindValidMoves(int turn, int progress, Dictionary<string, MaxProfitPosition> profitPositionList, int[,] defaultBoard)
     {
+        MaxProfitPosition valueInformation;
+        string originKeyInformation;
+        bool skipCheck;
         foreach (string key in profitPositionList.Keys) //keyから一つ選択
         {
-            string originKeyInformation = null;
-            if (progress == 0) { }
-            else if (ReturnKeyElement(key, ",").Count != progress) continue; //探索済みのkeyを弾く
+            originKeyInformation = null;
+            Debug.Log("探索済み確認: " + "<color=green>" + (CountMyTurn(true, turn) * difficulty + progress) + "</color>");
+            Debug.Log("keyの要素数: " + "<color=green>" + ReturnKeyElement(key, ",").Count + "</color>");
+            if (turn + progress <= 1) { }
+            else if (ReturnKeyElement(key, ",").Count != (turn == 0 ? turn : CountMyTurn(true, turn)) * difficulty + progress) continue; //探索済みのkeyを弾く
             else { originKeyInformation = key;/*末尾にKeyToSpecifyを追加する*/}
             UpdatePiecePositionCopy(turn, progress, key, defaultBoard);// コピー盤面を用意
-            bool skipCheck = false;
+            skipCheck = false;
             for (int i = 0; i < defaultBoard.GetLength(0); i++)
             {
                 for (int j = 0; j < defaultBoard.GetLength(1); j++)// 64マス全探索
                 {
-                    MaxProfitPosition valueInformation = new MaxProfitPosition();
-                    int tempCount = (-2 * (progress % 2) + 1) * Judge(turn, new Vector2Int(i, j)); //ポイントi,jに駒を置いた場合にひっくり返せる枚数を探索
+                    valueInformation = new MaxProfitPosition();
+                    int tempCount = (-2 * (progress % 2) + 1) * Judge(profitPositionList[key].turn + 1, new Vector2Int(i, j)); //ポイントi,jに駒を置いた場合にひっくり返せる枚数を探索
                     int keyToSpecify = 1;//Dictionaryのkeyの初期値
                     if (tempCount != 0)
                     {
@@ -158,30 +197,43 @@ public class CPU : MonoBehaviour
                         {
                             keyInformation = originKeyInformation + "," + keyToSpecify.ToString();
                             keyToSpecify++;
-                        } while (profitPositionListCopy.ContainsKey(keyInformation));
+                        } while (searchResults.ContainsKey(keyInformation));
+                        if (turn == 0 || turn == 1) valueInformation.turn = turn + progress;
+                        else valueInformation.turn = ReturnKeyElement(key, ",").Count - 1 + progress;
                         valueInformation.MaxFlipCount = tempCount;
                         valueInformation.SelectedPosition = new Vector2Int(i, j);
-                        profitPositionListCopy.Add(keyInformation, valueInformation);
+                        searchResults.Add(keyInformation, valueInformation);
                     }
                 }
             }
             if (!skipCheck)
             {
-                profitPositionListCopy.Add(originKeyInformation + ",", new MaxProfitPosition() { MaxFlipCount = 0 });
+                searchResults.Add(originKeyInformation + ",", new MaxProfitPosition() { MaxFlipCount = 0 });
             }
         }
         // 一時保存したデータを返す
-        return profitPositionListCopy;
+        return searchResults;
     }
 
-    //渡された一つの盤面に対して実行する
-    private int EvaluationFunction(int[,] evaluationTarget, int difficultyCopy)
+    /// <summary>
+    /// 評価関数の一番上
+    /// </summary>
+    /// <param name="evaluationTarget">評価する盤面</param>
+    /// <param name="difficultyCopy">何手先まで評価するか</param>
+    /// <returns></returns>
+    private int EvaluationFunction(int[,] evaluationTarget, int difficultyCopy, string key)
     {
+        Debug.Log("<color=green>" + key + "</color>");
+        Debug.Log(CandidateNumberSearch(key));
         //確定石の計算
-        return ConfirmedStoneCount(evaluationTarget);
+        //ConfirmedStoneCount(evaluationTarget, key);
+        return 0;
     }
 
-    private class SearchInformation
+    /// <summary>
+    /// 探索に使う数値のデータクラス
+    /// </summary>
+    private class SearchInformationData
     {
         public int vertical;
         public int horizontal;
@@ -190,38 +242,51 @@ public class CPU : MonoBehaviour
         public bool searchDirect;
     };
 
-    private int ConfirmedStoneCount(int[,] evaluationTarget)
+    /// <summary>
+    /// 確定石の探索
+    /// </summary>
+    /// <param name="evaluationTarget">評価対象（盤面）</param>
+    /// <returns>評価</returns>
+    private int ConfirmedStoneCount(int[,] evaluationTarget, string key)
     {
+        if (ReturnKeyElement(key, ",").Count == difficulty - 1) return 0;
         int confirmedStone = 0;
         bool[,] verificationFlag = new bool[8, 8];
+        Array.Clear(verificationFlag, 0, verificationFlag.Length);
+        int pieceColor = -2;
         foreach (Vector2Int cornerPos in storage.cornerPos)
         {
-            int pieceColor = evaluationTarget[cornerPos.x, cornerPos.y];
-            int colorSwitch = pieceColor == 1 ? 1 : -1;
+            pieceColor = evaluationTarget[cornerPos.x, cornerPos.y];
             if (pieceColor == 0) continue;
-            else ++confirmedStone;
-            SearchInformation searchInformation = new SearchInformation { };
+            int colorSwitch = pieceColor;
+            confirmedStone += 1 * colorSwitch;
+            SearchInformationData searchInformation = new SearchInformationData { };
             searchInformation.searchDirect = false;
             //x座標方向に探索
             for (int i = 1; i <= 7; i++)
             {
                 searchInformation.additionDirection.x = cornerPos.x == 0 ? 1 : -1;
-                if (evaluationTarget[cornerPos.x + (searchInformation.additionDirection.x * i), cornerPos.y] != pieceColor) break;
-                else
+                if (verificationFlag[cornerPos.x + (searchInformation.additionDirection.x * i), cornerPos.y]) continue;
+                else if (evaluationTarget[cornerPos.x + (searchInformation.additionDirection.x * i), cornerPos.y] == pieceColor)
                 {
                     searchInformation.vertical++;
+                    verificationFlag[cornerPos.x + (searchInformation.additionDirection.x * i), cornerPos.y] = true;
                 }
+                else break;
             }
             //y座標方向に探索
             for (int i = 1; i <= 7; i++)
             {
                 searchInformation.additionDirection.y = cornerPos.y == 0 ? 1 : -1;
+                if (verificationFlag[cornerPos.x, cornerPos.y + (searchInformation.additionDirection.y * i)]) continue;
                 if (evaluationTarget[cornerPos.x, cornerPos.y + (searchInformation.additionDirection.y * i)] == pieceColor)
                 {
                     searchInformation.horizontal++;
+                    verificationFlag[cornerPos.x, cornerPos.y + (searchInformation.additionDirection.y * i)] = true;
                 }
+                else break;
             }
-            confirmedStone = searchInformation.vertical + searchInformation.horizontal;
+            confirmedStone = (searchInformation.vertical + searchInformation.horizontal) * colorSwitch;
             if (searchInformation.horizontal >= searchInformation.vertical)
             {
                 searchInformation.occupancyRate = searchInformation.horizontal;
@@ -238,15 +303,21 @@ public class CPU : MonoBehaviour
             {
                 for (int i = 0; i < searchInformation.vertical; i++)
                 {
-                    searchPos = new Vector2Int(cornerPos.x + (searchInformation.vertical * searchInformation.additionDirection.x) + (-searchInformation.additionDirection.x * i), cornerPos.y + (searchInformation.horizontal * searchInformation.additionDirection.y) + (-searchInformation.additionDirection.y * i));
-                    // Debug.Log(searchPos);
+                    searchPos = new Vector2Int(cornerPos.x + (searchInformation.vertical * searchInformation.additionDirection.x) + (-searchInformation.additionDirection.x * i),
+                                               cornerPos.y + (searchInformation.horizontal * searchInformation.additionDirection.y) + (-searchInformation.additionDirection.y * i));
+                    Debug.Log("searchPos" + searchPos.x + ", " + searchPos.y);
                     if (evaluationTarget[searchPos.x, searchPos.y] == pieceColor)
                     {
-                        searchLimit = searchLimit > searchPos.y ? searchPos.y : searchLimit; //searchLimit > searchPos.yならsearchLimit = searchPos.y;
+                        searchLimit = searchLimit > searchPos.y ? searchPos.y : searchLimit;
                         for (int searchFocus = 0; searchFocus < searchLimit; ++searchFocus)
                         {
                             if (evaluationTarget[searchPos.x, searchFocus] != pieceColor) searchLimit = searchFocus - 1;
-                            else ++confirmedStone;
+                            else if (verificationFlag[searchPos.x, searchFocus]) continue;
+                            else
+                            {
+                                verificationFlag[searchPos.x, searchFocus] = true;
+                                ++confirmedStone;
+                            }
                         }
                     }
                 }
@@ -255,7 +326,8 @@ public class CPU : MonoBehaviour
             {
                 for (int i = 0; i < searchInformation.horizontal; i++)
                 {
-                    searchPos = new Vector2Int(cornerPos.x + (searchInformation.vertical * searchInformation.additionDirection.x) + (-searchInformation.additionDirection.x * i), cornerPos.y + (searchInformation.horizontal * searchInformation.additionDirection.y) + (-searchInformation.additionDirection.y * i));
+                    searchPos = new Vector2Int(cornerPos.x + (searchInformation.vertical * searchInformation.additionDirection.x) + (-searchInformation.additionDirection.x * i),
+                                               cornerPos.y + (searchInformation.horizontal * searchInformation.additionDirection.y) + (-searchInformation.additionDirection.y * i));
                     // Debug.Log("searchPos :" + searchPos);
                     if (evaluationTarget[searchPos.x, searchPos.y] == pieceColor)
                     {
@@ -263,30 +335,55 @@ public class CPU : MonoBehaviour
                         for (int searchFocus = 0; searchFocus < searchLimit; ++searchFocus)
                         {
                             if (evaluationTarget[searchFocus, searchPos.y] != pieceColor) searchLimit = searchFocus - 1;
-                            else ++confirmedStone;
+                            else if (verificationFlag[searchFocus, searchPos.y]) continue;
+                            else
+                            {
+                                verificationFlag[searchFocus, searchPos.y] = true;
+                                ++confirmedStone;
+                            }
                         }
                     }
                 }
             }
         }
-        Debug.Log(confirmedStone);
+        switch (pieceColor)
+        {
+            case 0:
+                Debug.Log("<color=green>" + confirmedStone + "</color>");
+                break;
+            case 1:
+                Debug.Log("<color=white>" + confirmedStone + "</color>");
+                break;
+            case -1:
+                Debug.Log("<color=brack>" + confirmedStone + "</color>");
+                break;
+        }
         return confirmedStone;
     }
 
-    private int  SelectableLocationSearcher(int turn)
+    /// <summary>
+    /// 指定した手から取れる手の数を探索する
+    /// </summary>
+    /// <param name="key">keyを一つ渡す</param>
+    /// <returns>取れる手の数</returns>
+    public int CandidateNumberSearch(string key)
     {
-        int SelectableLocation = 0;
-        for (int i = 0; i < piecePositionCopy.GetLength(0); ++i)
+        bool endFlag = true;
+        int count = 0;
+        for (int i = 0; endFlag; i++)
         {
-            for (int j = 0; j < piecePositionCopy.GetLength(1); ++j)
+            if (!profitPositionList.ContainsKey(key + "," + i))
             {
-                if (Judge(turn, new Vector2Int(i,j)) > 0)
-                {
-                    ++SelectableLocation;
-                }
+                endFlag = false;
+            }
+            else
+            {
+                if (!endFlag) Debug.Log("<color=red>" + endFlag + "</color>");
+                count++;
+                Debug.Log("<color=green>" + key + "," + i + ":" + count + "</color>");
             }
         }
-        return SelectableLocation;
+        return count;
     }
 
     //引数：現在のターン数、何手目まで探索したか、探索したい枝のkey
@@ -299,6 +396,11 @@ public class CPU : MonoBehaviour
         for (int i = 0; i <= progress - 1; i++)// 現在のprogressの分だけkeyからコピーする
         {
             turn += i;
+            if (ReturnKeyElement(key, ",").Count <= i)
+            {
+                Debug.Log("</color=green>" + "keyの要素数が足りない" + "</color>" + i);
+                continue;
+            }
             if (ReturnKeyElement(key, ",")[i] == null) continue;
             string stac = null;
             for (int j = 0; j <= i; j++)
@@ -423,10 +525,67 @@ public class CPU : MonoBehaviour
         return a;
     }
 
-    private List<string> ReturnKeyElement(string checkSource, string separatorString)
+    public List<string> ReturnString()
+    {
+        List<string> result = new List<string>(profitPositionList.Keys);
+        return result;
+    }
+
+    public List<string> ReturnKeyElement(string checkSource, string separatorString)
     {
         List<string> Items = checkSource.Split(separatorString).ToList();
         Items.RemoveAt(0);
         return Items;
+    }
+
+    public int CountMyTurn(int turn)
+    {
+        if (turn / 2 < 1) return 1;
+        return (int)Math.Ceiling((double)turn / 2);
+    }
+    public int CountMyTurn(bool allowZero, int turn)
+    {
+        if (turn / 2 < 1 && !allowZero) return 1;
+        return Math.Abs(turn / 2);
+    }
+
+    private void RemoveUnnecessary(string requiredElements)
+    {
+        Dictionary<string, MaxProfitPosition> profitPositionListCopy = new Dictionary<string, MaxProfitPosition>(profitPositionList);
+        foreach (string key in profitPositionListCopy.Keys)
+        {
+            if (key.Length < requiredElements.Length)
+            {
+                if (requiredElements.Substring(0, key.Length) != key)
+                {
+                    profitPositionList.Remove(key);
+                }
+            }
+            else if (key.Substring(0, requiredElements.Length) != requiredElements)
+            {
+                profitPositionList.Remove(key);
+            }
+        }
+    }
+
+    public void RemovePlayerUnnecessary(int turn, Vector2Int selectedPos)
+    {
+        Dictionary<string, MaxProfitPosition> profitPositionListCopy = new Dictionary<string, MaxProfitPosition>(profitPositionList);
+        string removeTarget = "";
+        foreach (string key in profitPositionListCopy.Keys)
+        {
+            if (key.Substring(0, removeTarget.Length) != removeTarget && removeTarget != "")
+            {
+                profitPositionList.Remove(key);
+            }
+            else if (profitPositionListCopy[key].SelectedPosition != selectedPos && key.Length == turn * 2)
+            {
+                profitPositionList.Remove(key);
+            }
+            else if (profitPositionListCopy[key].SelectedPosition == selectedPos && key.Length == turn * 2)
+            {
+                removeTarget = key;
+            }
+        }
     }
 }
