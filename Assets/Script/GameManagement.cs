@@ -28,6 +28,7 @@ public class GameManagement : MonoBehaviour
     private bool DebugMode = true;
     private BoardManagement boardManagement;
     private CPU cpu;
+    private DebugScript debugScript;
     public Vector2Int cellpos;
     private int playerTurn;
     private int blockageCounter = 0;
@@ -40,6 +41,7 @@ public class GameManagement : MonoBehaviour
         //state = State.Test;
         boardManagement = GetComponent<BoardManagement>();
         cpu = GetComponent<CPU>();
+        debugScript = GetComponent<DebugScript>();
         StartCoroutine("ModeratorFacilitator");
     }
 
@@ -83,22 +85,16 @@ public class GameManagement : MonoBehaviour
                     }
                     break;
                 case State.SelectionCPU:
-                    if (!boardManagement.BlockageJudgment(playerTurn, blockageCounter))
-                    {
-                        Debug.Log("手番交代");
-                        boardManagement.index = new Vector2Int(-1, -1);
-                        state = State.Change;
-                    }
                     cpu.Action(isPlayerFirst, playerTurn, boardManagement.piecePosition);
-                    cellpos =  cpu.ChoiceBranch(isPlayerFirst, playerTurn);
+                    cellpos = cpu.ChoiceBranch(isPlayerFirst, playerTurn);
                     boardManagement.index = cellpos;
                     yield return new WaitForSeconds(1);
                     state = State.Arrangement;
-                    break;
-                    if(DebugMode)
+                    if (DebugMode)
                     {
                         state = State.Debug; break;
                     }
+                    break;
                 case State.Judgement:
                     if (boardManagement.Judge(playerTurn))
                     {
@@ -149,6 +145,7 @@ public class GameManagement : MonoBehaviour
                     }
                     break;
                 case State.Debug:
+                    debugScript.DebugFunction();
                     state = State.Arrangement;
                     break;
             }

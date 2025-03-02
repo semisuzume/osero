@@ -22,7 +22,7 @@ public class BoardManagement : MonoBehaviour
     {
         storage = GetComponent<FunctionStorage>();
         piece = Resources.Load("osero_piece") as GameObject;
-        nullObject = Resources.Load("null") as GameObject;
+        nullObject = Resources.Load("nullObject") as GameObject;
     }
 
     // Update is called once per frame
