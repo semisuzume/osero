@@ -372,6 +372,10 @@ public class CPU : MonoBehaviour
             }
             if (profitPositionList.ContainsKey(stac))
             {
+                if (stac.Substring(stac.Count() - 1, 1) == "N")
+                {
+                    stac = stac.Remove(stac.Count() - 2, 2);
+                }
                 if (!(profitPositionList[stac].SelectedPosition.x < 0 && profitPositionList[stac].SelectedPosition.y < 0))
                 {
                     Arrangement(turn + i, profitPositionList[stac].SelectedPosition);
