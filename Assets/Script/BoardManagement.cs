@@ -22,7 +22,7 @@ public class BoardManagement : MonoBehaviour
     {
         storage = GetComponent<FunctionStorage>();
         piece = Resources.Load("osero_piece") as GameObject;
-        nullObject = Resources.Load("null") as GameObject;
+        nullObject = Resources.Load("nullObject") as GameObject;
     }
 
     // Update is called once per frame
@@ -83,6 +83,12 @@ public class BoardManagement : MonoBehaviour
     public void Intermediary(Vector2Int cellpos)
     {
         index = FunctionStorage.PosToIndex(cellpos);
+        Debug.Log(index);
+    }
+
+    public Vector2Int ReturnConversion(Vector2Int cellpos)
+    {
+        return FunctionStorage.PosToIndex(cellpos);
     }
 
     /// <summary>
@@ -265,7 +271,6 @@ public class BoardManagement : MonoBehaviour
                 now += d;
             }
         }
-        Debug.Log(allResults);
         return allResults;
     }
 

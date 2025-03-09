@@ -8,6 +8,7 @@ public class GameManagement : MonoBehaviour
     enum State
     {
         Test,
+        Debug,
 
         //piecePosition�ɏ����l������
         Init,
@@ -24,12 +25,15 @@ public class GameManagement : MonoBehaviour
         Result
     }
     State state = State.Init;
+    private bool DebugMode = true;
     private BoardManagement boardManagement;
     private CPU cpu;
+    private DebugScript debugScript;
     public Vector2Int cellpos;
     private int playerTurn;
     private int blockageCounter = 0;
     private bool callConfirmation;
+    public bool isPlayerFirst = true;
 
     // Start is called before the first frame update
     void Start()
@@ -37,10 +41,11 @@ public class GameManagement : MonoBehaviour
         //state = State.Test;
         boardManagement = GetComponent<BoardManagement>();
         cpu = GetComponent<CPU>();
-        StartCoroutine("ModeratorFacilitator");//→変更：ModeratorFacilitator()
+        debugScript = GetComponent<DebugScript>();
+        StartCoroutine("ModeratorFacilitator");
     }
 
-    IEnumerator ModeratorFacilitator()//前回追加したところ
+    IEnumerator ModeratorFacilitator()
     {
         while (true)
         {
@@ -59,6 +64,7 @@ public class GameManagement : MonoBehaviour
                     if (!boardManagement.BlockageJudgment(playerTurn, blockageCounter))
                     {
                         Debug.Log("手番交代");
+                        boardManagement.index = new Vector2Int(-1, -1);
                         state = State.Change;
                     }
                     if (Input.GetMouseButtonUp(0))
@@ -79,15 +85,21 @@ public class GameManagement : MonoBehaviour
                     }
                     break;
                 case State.SelectionCPU:
-                    cellpos = cpu.Action(playerTurn, boardManagement.piecePosition);
+                    cpu.Action(isPlayerFirst, playerTurn, boardManagement.piecePosition);
+                    cellpos = cpu.ChoiceBranch(isPlayerFirst, playerTurn);
                     boardManagement.index = cellpos;
                     yield return new WaitForSeconds(1);
-                    state = State.Judgement;
+                    state = State.Arrangement;
+                    if (DebugMode)
+                    {
+                        state = State.Debug; break;
+                    }
                     break;
                 case State.Judgement:
                     if (boardManagement.Judge(playerTurn))
                     {
                         Debug.Log("judge通ったよ");
+                        cpu.RemovePlayerUnnecessary(playerTurn, boardManagement.ReturnConversion(cellpos));
                         state = State.Arrangement;
                     }
                     else
@@ -131,6 +143,10 @@ public class GameManagement : MonoBehaviour
                         SceneManager.LoadScene("Result", LoadSceneMode.Additive);
                         callConfirmation = false;
                     }
+                    break;
+                case State.Debug:
+                    debugScript.DebugFunction();
+                    state = State.Arrangement;
                     break;
             }
         }
