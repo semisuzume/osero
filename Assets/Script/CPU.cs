@@ -145,10 +145,11 @@ public class CPU : MonoBehaviour
                 for (int j = 0; j < defaultBoard.GetLength(1); j++)// 64マス全探索
                 {
                     valueInformation = new MaxProfitPosition();
-                    int tempCount = (whichTurn + 1) * Judge(key == ",-1" ? profitPositionList[key].turn : profitPositionList[key].turn + 1, new Vector2Int(i, j)); //ポイントi,jに駒を置いた場合にひっくり返せる枚数を探索
+                    int tempCount = whichTurn * Judge(key == ",-1" ? profitPositionList[key].turn : profitPositionList[key].turn + 1, new Vector2Int(i, j)); //ポイントi,jに駒を置いた場合にひっくり返せる枚数を探索
                     int keyToSpecify = 1;//Dictionaryのkeyの初期値
                     if (tempCount != 0)
                     {
+                        if (profitPositionList[key].turn + 1 == 3) Debug.Log("jedge: " + Judge(key == ",-1" ? profitPositionList[key].turn : profitPositionList[key].turn + 1, new Vector2Int(i, j)) + "position: " + i + ", " + j);
                         string keyInformation;
                         DoSkip = false;
                         do
