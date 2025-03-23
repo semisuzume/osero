@@ -87,8 +87,8 @@ public class DebugScript : MonoBehaviour
             TextMeshProUGUI TMP = textObj.GetComponent<TextMeshProUGUI>();
             TMP.text = prop.Name + " : " + prop.GetValue(source).ToString();
         }
-        GameObject judgeTextObj = Instantiate(InfoMember, ViewInfoContent.transform);
-        TextMeshProUGUI judgeTMP = judgeTextObj.GetComponent<TextMeshProUGUI>();
-        judgeTMP.text = "Judge : " + cpu.Judge(copy.turn, copy.SelectedPosition);
+        GameObject keyTextObj = Instantiate(InfoMember, ViewInfoContent.transform);
+        TextMeshProUGUI keyTMP = keyTextObj.GetComponent<TextMeshProUGUI>();
+        keyTMP.text = "key : " + key;
     }
 }

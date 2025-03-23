@@ -20,7 +20,7 @@ public class CPU : MonoBehaviour
     GameManagement gameManagement;
     BoardManagement boardManagement;
     FunctionStorage storage;
-    int difficulty = 5;
+    int difficulty = 2;
     int firstTurn = 0;
     // Start is called before the first frame update
     void Start()

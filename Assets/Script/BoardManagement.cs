@@ -302,6 +302,7 @@ public class BoardManagement : MonoBehaviour
                 else
                 {
                     obj = Instantiate(nullObject);
+                    obj.tag = "osero";
                 }
             }
         }
