@@ -83,7 +83,6 @@ public class BoardManagement : MonoBehaviour
     public void Intermediary(Vector2Int cellpos)
     {
         index = FunctionStorage.PosToIndex(cellpos);
-        Debug.Log(index);
     }
 
     public Vector2Int ReturnConversion(Vector2Int cellpos)

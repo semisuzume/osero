@@ -6,7 +6,7 @@ public class MaxProfitPosition
 {
     public bool[,] ConfirmedStone { get; set; } = new bool[8, 8];
     public Vector2Int SelectedPosition { get; set; }
-    public int turn { get; set; }
+    public int Turn { get; set; }
     public int MaxFlipCount { get; set; }
     /// <summary>
     /// 確定石
