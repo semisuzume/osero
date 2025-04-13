@@ -81,7 +81,7 @@ public class DebugScript : MonoBehaviour
             }
             if (prop.Name == "turn")
             {
-                copy.turn = (int)prop.GetValue(source);
+                copy.Turn = (int)prop.GetValue(source);
             }
             GameObject textObj = Instantiate(InfoMember, ViewInfoContent.transform);
             TextMeshProUGUI TMP = textObj.GetComponent<TextMeshProUGUI>();

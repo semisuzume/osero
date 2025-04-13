@@ -56,7 +56,7 @@ public class CPU : MonoBehaviour
     public void Action(bool isPlayerFirst, int turn, int[,] originalData)
     {
         searchResults.Clear();
-        if (turn == 1) profitPositionList.Add(",-1", new MaxProfitPosition() { SelectedPosition = new Vector2Int(-1, -1), turn = firstTurn });
+        if (turn == 0) profitPositionList.Add(",-1", new MaxProfitPosition() { SelectedPosition = new Vector2Int(-1, -1), Turn = firstTurn });
         for (int progress = 0; progress < difficulty; progress++)
         {
             profitPositionList = profitPositionList.Concat(FindValidMoves(isPlayerFirst, turn, progress, profitPositionList, originalData)
@@ -93,18 +93,25 @@ public class CPU : MonoBehaviour
                 }
                 finalResult += profitPositionList[keyCode].MaxFlipCount;
             }
-            if (temp.MaxFlipCount < finalResult)
+            //SubStringされるとき失敗するときがある
+            if ((temp.MaxFlipCount < finalResult) || (finalResult == 0 && temp.MaxFlipCount == 0))
             {
-                selectedKey = keyCode.Substring(0, isPlayerFirst ? (turn * 2) : (turn * 2) + 1);
-                temp = profitPositionList[selectedKey];
-            }
-            else if (finalResult == 0 && temp.MaxFlipCount == 0)
-            {
-                selectedKey = keyCode.Substring(0, isPlayerFirst ? (turn * 2) : (turn * 2) + 1);
+                Debug.Log("<color=green>" + "選択されたkey" + selectedKey + "</color>");
+                selectedKey = "";
+                for (int i = 0; i < (isPlayerFirst ? turn : turn + 1); i++)
+                {
+                    selectedKey += "," + ReturnKeyElement(keyCode, ",")[i];
+                }
                 temp = profitPositionList[selectedKey];
             }
         }
+        Debug.Log("<color=green>" + "選択されたkey" + selectedKey + "</color>");
         RemoveUnnecessary(selectedKey);
+        if (string.Join(",", ListSlice(ReturnKeyElement(selectedKey, ","), ReturnKeyElement(selectedKey, ",").Count - 1, 1)) == "N")
+        {
+            Debug.Log("<color=red>" + "選択されたkeyがN" + "</color>");
+            return new Vector2Int(-1, -1);
+        }
         return temp.SelectedPosition;
     }
 
@@ -131,10 +138,8 @@ public class CPU : MonoBehaviour
         bool DoSkip = true;
         foreach (string key in profitPositionList.Keys) //keyから一つ選択
         {
-            int whichTurn = (-2 * ((profitPositionList[key].turn + firstTurn) % 2)) + 1;
+            int whichTurn = (2 * ((profitPositionList[key].Turn + firstTurn) % 2)) - 1;
             originKeyInformation = null;
-            Debug.Log("探索済み確認: " + "<color=green>" + (CountMyTurn(true, turn) * difficulty + progress) + "</color>");
-            Debug.Log("keyの要素数: " + "<color=green>" + ReturnKeyElement(key, ",").Count + "</color>");
             if (turn + progress <= 1) { }
             else if (ReturnKeyElement(key, ",").Count != (turn == 0 ? turn : CountMyTurn(true, turn)) * difficulty + progress) continue; //探索済みのkeyを弾く
             else { originKeyInformation = key;/*末尾にKeyToSpecifyを追加する*/}
@@ -145,11 +150,10 @@ public class CPU : MonoBehaviour
                 for (int j = 0; j < defaultBoard.GetLength(1); j++)// 64マス全探索
                 {
                     valueInformation = new MaxProfitPosition();
-                    int tempCount = whichTurn * Judge(key == ",-1" ? profitPositionList[key].turn : profitPositionList[key].turn + 1, new Vector2Int(i, j)); //ポイントi,jに駒を置いた場合にひっくり返せる枚数を探索
+                    int tempCount = whichTurn * Judge(key == ",-1" ? profitPositionList[key].Turn : profitPositionList[key].Turn + 1, new Vector2Int(i, j)); //ポイントi,jに駒を置いた場合にひっくり返せる枚数を探索
                     int keyToSpecify = 1;//Dictionaryのkeyの初期値
                     if (tempCount != 0)
                     {
-                        if (profitPositionList[key].turn + 1 == 3) Debug.Log("jedge: " + Judge(key == ",-1" ? profitPositionList[key].turn : profitPositionList[key].turn + 1, new Vector2Int(i, j)) + "position: " + i + ", " + j);
                         string keyInformation;
                         DoSkip = false;
                         do
@@ -157,8 +161,8 @@ public class CPU : MonoBehaviour
                             keyInformation = originKeyInformation + "," + keyToSpecify.ToString();
                             keyToSpecify++;
                         } while (searchResults.ContainsKey(keyInformation));
-                        if (turn == 0 || turn == 1) valueInformation.turn = turn + progress;
-                        else valueInformation.turn = profitPositionList[key].turn + 1;
+                        if (turn == 0 || turn == 1) valueInformation.Turn = turn + progress;
+                        else valueInformation.Turn = profitPositionList[key].Turn + 1;
                         valueInformation.MaxFlipCount = tempCount;
                         valueInformation.SelectedPosition = new Vector2Int(i, j);
                         searchResults.Add(keyInformation, valueInformation);
@@ -167,7 +171,7 @@ public class CPU : MonoBehaviour
             }
             if (DoSkip)
             {
-                searchResults.Add(originKeyInformation + "," + "N", new MaxProfitPosition() { MaxFlipCount = 0, turn = turn + progress });
+                searchResults.Add(originKeyInformation + "," + "N", new MaxProfitPosition() { MaxFlipCount = 0, Turn = turn + progress });
             }
         }
         // 一時保存したデータを返す
@@ -184,8 +188,7 @@ public class CPU : MonoBehaviour
     {
         Debug.Log("<color=green>" + key + "</color>");
         Debug.Log(CandidateNumberSearch(key));
-        //確定石の計算
-        //ConfirmedStoneCount(evaluationTarget, key);
+        ConfirmedStoneCount(evaluationTarget, key);
         return 0;
     }
 
@@ -358,9 +361,9 @@ public class CPU : MonoBehaviour
     private void UpdatePiecePositionCopy(int turn, int progress, string key, int[,] defaultBoard)
     {
         Copy(defaultBoard);
-        for (int i = 0; i <= (profitPositionList[key].turn - turn); i++)
+        for (int i = 0; i <= (profitPositionList[key].Turn - turn); i++)
         {
-            if (ReturnKeyElement(key, ",").Count <= (turn + i -firstTurn))
+            if (ReturnKeyElement(key, ",").Count <= (turn + i - firstTurn))
             {
                 Debug.Log("<color=green>" + "keyの要素数が足りない" + "</color>" + (turn + i));
                 continue;
@@ -505,6 +508,16 @@ public class CPU : MonoBehaviour
         return Items;
     }
 
+    public List<string> ListSlice(List<string> list, int startIndex, int length)
+    {
+        List<string> result = new List<string>();
+        for (int i = startIndex; i < length; i++)
+        {
+            result.Add(list[i]);
+        }
+        return result;
+    }
+
     public Dictionary<string, MaxProfitPosition> ReturnProfitPositionList()
     {
         return profitPositionList;
@@ -528,15 +541,19 @@ public class CPU : MonoBehaviour
         {
             if (key.Length < requiredElements.Length)
             {
-                if (requiredElements.Substring(0, key.Length) != key)
+                if ("," + string.Join(",", ListSlice(ReturnKeyElement(key, ","), 0, ReturnKeyElement(key, ",").Count())) != key)
                 {
                     profitPositionList.Remove(key);
                 }
             }
-            else if (key.Substring(0, requiredElements.Length) != requiredElements)
+            else if ("," + string.Join(",", ListSlice(ReturnKeyElement(key, ","), 0, ReturnKeyElement(requiredElements, ",").Count())) != requiredElements)
             {
                 profitPositionList.Remove(key);
             }
+        }
+        if (!profitPositionList.ContainsKey(requiredElements))
+        {
+            Debug.LogError("<color=red>" + "必要な要素が削除されました" + "key: " + requiredElements + "</color>");
         }
     }
 
@@ -552,18 +569,22 @@ public class CPU : MonoBehaviour
                 profitPositionList.Remove(key);
                 changeCheck = true;
             }
-            else if (profitPositionListCopy[key].SelectedPosition != selectedPos && key.Length == turn * 2)
+            else if (profitPositionListCopy[key].SelectedPosition != selectedPos && ReturnKeyElement(key, ",").Count() == turn)
             {
                 profitPositionList.Remove(key);
                 changeCheck = true;
             }
-            else if (profitPositionListCopy[key].SelectedPosition == selectedPos && key.Length == turn * 2)
+            else if (profitPositionListCopy[key].SelectedPosition == selectedPos && ReturnKeyElement(key, ",").Count() == turn)
             {
                 removeTarget = key;
             }
         }
         if (!changeCheck)
         {
+            if (turn == 0)
+            {
+                profitPositionList.Add(",1", new MaxProfitPosition() { SelectedPosition = selectedPos, Turn = turn });
+            }
             Debug.Log("<color=red>" + "削除対象が見つかりませんでした" + "</color>");
         }
     }
