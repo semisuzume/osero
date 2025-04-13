@@ -87,6 +87,13 @@ public class GameManagement : MonoBehaviour
                 case State.SelectionCPU:
                     cpu.Action(isPlayerFirst, playerTurn, boardManagement.piecePosition);
                     cellpos = cpu.ChoiceBranch(isPlayerFirst, playerTurn);
+                    if(cellpos == new Vector2Int(-1, -1))
+                    {
+                        blockageCounter++;
+                        boardManagement.index = new Vector2Int(-1, -1);
+                        state = State.Change;
+                        break;
+                    }
                     boardManagement.index = cellpos;
                     yield return new WaitForSeconds(1);
                     state = State.Arrangement;

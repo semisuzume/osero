@@ -96,6 +96,7 @@ public class CPU : MonoBehaviour
             //SubStringされるとき失敗するときがある
             if ((temp.MaxFlipCount < finalResult) || (finalResult == 0 && temp.MaxFlipCount == 0))
             {
+                Debug.Log("<color=green>" + "選択されたkey" + selectedKey + "</color>");
                 selectedKey = "";
                 for (int i = 0; i < (isPlayerFirst ? turn : turn + 1); i++)
                 {
@@ -106,6 +107,11 @@ public class CPU : MonoBehaviour
         }
         Debug.Log("<color=green>" + "選択されたkey" + selectedKey + "</color>");
         RemoveUnnecessary(selectedKey);
+        if (string.Join(",", ListSlice(ReturnKeyElement(selectedKey, ","), ReturnKeyElement(selectedKey, ",").Count - 1, 1)) == "N")
+        {
+            Debug.Log("<color=red>" + "選択されたkeyがN" + "</color>");
+            return new Vector2Int(-1, -1);
+        }
         return temp.SelectedPosition;
     }
 
@@ -182,8 +188,7 @@ public class CPU : MonoBehaviour
     {
         Debug.Log("<color=green>" + key + "</color>");
         Debug.Log(CandidateNumberSearch(key));
-        //確定石の計算
-        //ConfirmedStoneCount(evaluationTarget, key);
+        ConfirmedStoneCount(evaluationTarget, key);
         return 0;
     }
 
@@ -503,6 +508,16 @@ public class CPU : MonoBehaviour
         return Items;
     }
 
+    public List<string> ListSlice(List<string> list, int startIndex, int length)
+    {
+        List<string> result = new List<string>();
+        for (int i = startIndex; i < length; i++)
+        {
+            result.Add(list[i]);
+        }
+        return result;
+    }
+
     public Dictionary<string, MaxProfitPosition> ReturnProfitPositionList()
     {
         return profitPositionList;
@@ -526,19 +541,19 @@ public class CPU : MonoBehaviour
         {
             if (key.Length < requiredElements.Length)
             {
-                if (requiredElements.Substring(0, key.Length) != key)
+                if ("," + string.Join(",", ListSlice(ReturnKeyElement(key, ","), 0, ReturnKeyElement(key, ",").Count())) != key)
                 {
                     profitPositionList.Remove(key);
                 }
             }
-            else if (key.Substring(0, requiredElements.Length) != requiredElements)
+            else if ("," + string.Join(",", ListSlice(ReturnKeyElement(key, ","), 0, ReturnKeyElement(requiredElements, ",").Count())) != requiredElements)
             {
                 profitPositionList.Remove(key);
             }
         }
         if (!profitPositionList.ContainsKey(requiredElements))
         {
-            Debug.Log("<color=red>" + "必要な要素が削除されました" + "</color>");
+            Debug.LogError("<color=red>" + "必要な要素が削除されました" + "key: " + requiredElements + "</color>");
         }
     }
 
@@ -554,12 +569,12 @@ public class CPU : MonoBehaviour
                 profitPositionList.Remove(key);
                 changeCheck = true;
             }
-            else if (profitPositionListCopy[key].SelectedPosition != selectedPos && ReturnKeyElement(key,",").Count() == turn)
+            else if (profitPositionListCopy[key].SelectedPosition != selectedPos && ReturnKeyElement(key, ",").Count() == turn)
             {
                 profitPositionList.Remove(key);
                 changeCheck = true;
             }
-            else if (profitPositionListCopy[key].SelectedPosition == selectedPos && ReturnKeyElement(key,",").Count() == turn)
+            else if (profitPositionListCopy[key].SelectedPosition == selectedPos && ReturnKeyElement(key, ",").Count() == turn)
             {
                 removeTarget = key;
             }
