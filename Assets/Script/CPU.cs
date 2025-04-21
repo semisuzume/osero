@@ -76,7 +76,7 @@ public class CPU : MonoBehaviour
     /// <returns></returns>
     public Vector2Int ChoiceBranch(bool isPlayerFirst, int turn)
     {
-        string selectedKey = "";
+        string selectedKey = "a";
         MaxProfitPosition temp = new MaxProfitPosition();
         temp.MaxFlipCount = 0;
         foreach (string key in profitPositionList.Keys)
@@ -166,6 +166,7 @@ public class CPU : MonoBehaviour
                         valueInformation.MaxFlipCount = tempCount;
                         valueInformation.SelectedPosition = new Vector2Int(i, j);
                         searchResults.Add(keyInformation, valueInformation);
+                        Debug.Log("<color=purple>" + EvaluationFunction(JustOneUpdate(piecePositionCopy, new Vector2Int(i, j), whichTurn), difficulty, keyInformation, new Vector2Int(i, j)) + "</color>");
                     }
                 }
             }
@@ -184,12 +185,9 @@ public class CPU : MonoBehaviour
     /// <param name="evaluationTarget">評価する盤面</param>
     /// <param name="difficultyCopy">何手先まで評価するか</param>
     /// <returns></returns>
-    private int EvaluationFunction(int[,] evaluationTarget, int difficultyCopy, string key)
+    private int EvaluationFunction(int[,] evaluationTarget, int difficultyCopy, string key, Vector2Int selectedPosition)
     {
-        Debug.Log("<color=green>" + key + "</color>");
-        Debug.Log(CandidateNumberSearch(key));
-        ConfirmedStoneCount(evaluationTarget, key);
-        return 0;
+        return CheckBoardPoint(selectedPosition) * 2 + ConfirmedStoneCount(evaluationTarget, key) * 5 + CandidateNumberSearch(key);
     }
 
     /// <summary>
@@ -348,6 +346,19 @@ public class CPU : MonoBehaviour
         return count;
     }
 
+    public int CheckBoardPoint(Vector2Int checkTarget)
+    {
+        int[] BP = new int[64]{45,-11, 4,-1,-1, 4,-11, 45
+                                ,-11,-16,-1,-3,-3, 2,-16,-11
+                                ,  4, -1, 2,-1,-1, 2, -1,  4
+                                , -1, -3,-1, 0, 0,-1, -3, -1
+                                , -1, -3,-1, 0, 0,-1, -3, -1
+                                ,  4, -1, 2,-1,-1, 2, -1,  4
+                                ,-11,-16,-1,-3,-3,-1,-16,-11
+                                , 45,-11, 4,-1,-1, 4,-11, 45};
+        return BP[checkTarget.y + checkTarget.x * 8];
+    }
+
     //引数：現在のターン数、何手目まで探索したか、探索したい枝のkey
     //keyの要素を順番に取り出しその要素を持つListを作成する・・・⓵
     //⓵で作ったListをkeyに持つMaxProfitPosition.SelectedPositionを取得しそこに打った場合の盤面を再現する
@@ -390,6 +401,20 @@ public class CPU : MonoBehaviour
                 Debug.Log("違う！");
             }
         }
+    }
+
+    private int[,] JustOneUpdate(int[,] defaultBoard, Vector2Int selectedPosition, int player)
+    {
+        int[,] result = new int[8, 8];
+        for (int i = 0; i < defaultBoard.GetLength(0); i++)
+        {
+            for (int j = 0; j < defaultBoard.GetLength(1); j++)
+            {
+                result[i, j] = defaultBoard[i, j];
+            }
+        }
+        result[selectedPosition.y, selectedPosition.x] = player;
+        return result;
     }
 
     // ArrangementDirectから帰ってきた情報をまとめて反映する
