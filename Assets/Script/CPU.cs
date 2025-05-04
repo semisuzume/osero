@@ -77,6 +77,7 @@ public class CPU : MonoBehaviour
     public Vector2Int ChoiceBranch(bool isPlayerFirst, int turn)
     {
         string selectedKey = "a";
+        bool DoRun = false;
         MaxProfitPosition temp = new MaxProfitPosition();
         temp.MaxFlipCount = 0;
         foreach (string key in profitPositionList.Keys)
@@ -94,7 +95,7 @@ public class CPU : MonoBehaviour
                 finalResult += profitPositionList[keyCode].MaxFlipCount;
             }
             //SubStringされるとき失敗するときがある
-            if ((temp.MaxFlipCount < finalResult) || (finalResult == 0 && temp.MaxFlipCount == 0))
+            if ((temp.MaxFlipCount < finalResult) || (finalResult == 0 && temp.MaxFlipCount == 0) || !DoRun)
             {
                 Debug.Log("<color=green>" + "選択されたkey" + selectedKey + "</color>");
                 selectedKey = "";
@@ -103,6 +104,7 @@ public class CPU : MonoBehaviour
                     selectedKey += "," + ReturnKeyElement(keyCode, ",")[i];
                 }
                 temp = profitPositionList[selectedKey];
+                DoRun = true;
             }
         }
         Debug.Log("<color=green>" + "選択されたkey" + selectedKey + "</color>");
@@ -536,9 +538,9 @@ public class CPU : MonoBehaviour
     public List<string> ListSlice(List<string> list, int startIndex, int length)
     {
         List<string> result = new List<string>();
-        for (int i = startIndex; i < length; i++)
+        for (int i = 1; i < length; i++)
         {
-            result.Add(list[i]);
+            result.Add(list[startIndex + i]);
         }
         return result;
     }
