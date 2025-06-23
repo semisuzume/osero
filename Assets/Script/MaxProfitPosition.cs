@@ -12,4 +12,5 @@ public class MaxProfitPosition
     /// 確定石
     /// </summary>
     public int StaticStoneCount { get; set; }
+    public int RatingValue { get; set; }
 }
