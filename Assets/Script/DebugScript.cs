@@ -71,7 +71,7 @@ public class DebugScript : MonoBehaviour
         ViewInfoContent = ScreenObj.transform.GetChild(0).gameObject;
         Button button = ScreenObj.transform.GetComponentInChildren<Button>();
         button.onClick.AddListener(() => Destroy(ScreenObj));
-        MaxProfitPosition source = cpu.ReturnProfitPositionList()[key];
+        MaxProfitPosition source = cpu.GetProfitPositionList()[key];
         foreach (var prop in typeof(MaxProfitPosition).GetProperties())
         {
             if (prop.GetType() == typeof(bool[,])) continue;

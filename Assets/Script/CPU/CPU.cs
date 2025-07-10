@@ -3,42 +3,34 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using Unity.Collections;
+using Unity.Jobs;
 
 /// <summary>
 /// 置ける手の探索と選択
 /// </summary>
 public class CPU : MonoBehaviour
 {
+    // AssighmentとCopyからのみ代入可能
     public int[,] piecePositionCopy = new int[8, 8];
+
     Dictionary<string, MaxProfitPosition> profitPositionList = new Dictionary<string, MaxProfitPosition>();
     Dictionary<string, MaxProfitPosition> searchResults = new Dictionary<string, MaxProfitPosition>();
+
     GameManagement gameManagement;
     BoardManagement boardManagement;
+    BoardUpdate boardUpdate;
     FunctionStorage storage;
-    int difficulty = 4;
+
+    int difficulty = 2;
+
     // Start is called before the first frame update
     void Start()
     {
         gameManagement = GetComponent<GameManagement>();
         boardManagement = GetComponent<BoardManagement>();
+        boardUpdate = GetComponent<BoardUpdate>();
         storage = GetComponent<FunctionStorage>();
-    }
-
-    /// <summary>
-    /// BordManagementが保持している盤面CPU内でいじる用の盤面にコピーする
-    /// </summary>
-    /// <param name="originalData">元データ</param>
-    public void Copy(int[,] originalData)
-    {
-        for (int i = 0; i < piecePositionCopy.GetLength(0); i++)
-        {
-            string str = "";
-            for (int j = 0; j < piecePositionCopy.GetLength(1); j++)
-            {
-                piecePositionCopy[i, j] = originalData[i, j];
-                str = str + piecePositionCopy[i, j] + " ";
-            }
-        }
     }
 
     /// <summary>
@@ -84,15 +76,15 @@ public class CPU : MonoBehaviour
                 continue;
             }
             for (int i = 0; i < (turn == 0 ? turn : CountThisTurn(turn)) * difficulty + 1; i++)
+            {
+                keyCode = null;
+                for (int j = 0; j <= i; j++)
                 {
-                    keyCode = null;
-                    for (int j = 0; j <= i; j++)
-                    {
-                        keyCode += "," + ReturnKeyElement(key, ",")[j];
-                    }
-                    finalResult += profitPositionList[keyCode].RatingValue;
-                    Debug.Log("keyCode: " + keyCode + " finalResult: " + finalResult);
+                    keyCode += "," + ReturnKeyElement(key, ",")[j];
                 }
+                finalResult += profitPositionList[keyCode].RatingValue;
+                Debug.Log("keyCode: " + keyCode + " finalResult: " + finalResult);
+            }
             //SubStringされるとき失敗するときがある
             if ((temp.RatingValue < finalResult) || (finalResult == 0 && temp.RatingValue == 0) || !DoRun)
             {
@@ -134,9 +126,10 @@ public class CPU : MonoBehaviour
     /// <returns>ｎ+1手目で置ける場所の保存されているDictionary</returns>
     public Dictionary<string, MaxProfitPosition> FindValidMoves(int turn, int progress, Dictionary<string, MaxProfitPosition> profitPositionList, int[,] defaultBoard)
     {
-        MaxProfitPosition valueInformation;
         string originKeyInformation;
-        bool DoSkip = true;
+        List<JobHandle> jobHandles = new List<JobHandle>();
+        List<NativeHashMap<FixedString512Bytes, MaxProfitPosition>> nativeResults = new List<NativeHashMap<FixedString512Bytes, MaxProfitPosition>>();
+
         foreach (string key in profitPositionList.Keys) //keyから一つ選択
         {
             int whichTurn = (2 * (profitPositionList[key].Turn % 2)) - 1;
@@ -144,48 +137,62 @@ public class CPU : MonoBehaviour
             if (turn + progress <= 1) { }
             else if (ReturnKeyElement(key, ",").Count != CountThisTurn(turn) * difficulty + progress - difficulty + 1) continue; //探索済みのkeyを弾く
             else { originKeyInformation = key;/*末尾にKeyToSpecifyを追加する*/}
-            UpdatePiecePositionCopy(turn, progress, key, defaultBoard);// コピー盤面を用意
-            DoSkip = true;
-            for (int i = 0; i < defaultBoard.GetLength(0); i++)
+            NativeHashMap<FixedString512Bytes, MaxProfitPosition> nativeSearchResults = new NativeHashMap<FixedString512Bytes, MaxProfitPosition>(64, Allocator.TempJob);
+
+            SearchMove searchMove = new SearchMove
             {
-                for (int j = 0; j < defaultBoard.GetLength(1); j++)// 64マス全探索
-                {
-                    valueInformation = new MaxProfitPosition();
-                    int tempCount = whichTurn * Judge(key == ",-1" ? profitPositionList[key].Turn : profitPositionList[key].Turn + 1, new Vector2Int(i, j)); //ポイントi,jに駒を置いた場合にひっくり返せる枚数を探索
-                    int keyToSpecify = 1;//Dictionaryのkeyの初期値
-                    if (tempCount != 0)
-                    {
-                        string keyInformation;
-                        DoSkip = false;
-                        do
-                        {
-                            keyInformation = originKeyInformation + "," + keyToSpecify.ToString();
-                            keyToSpecify++;
-                        } while (searchResults.ContainsKey(keyInformation));
-                        if (turn == 0 || turn == 1) valueInformation.Turn = turn + progress;
-                        else valueInformation.Turn = profitPositionList[key].Turn + 1;
-                        valueInformation.MaxFlipCount = tempCount;
-                        valueInformation.SelectedPosition = new Vector2Int(i, j);
-                        searchResults.Add(keyInformation, valueInformation);
-                    }
-                }
-            }
-            if (DoSkip)
-            {
-                searchResults.Add(originKeyInformation + "," + "N", new MaxProfitPosition() { MaxFlipCount = 0, Turn = turn + progress });
-            }
+                jobBoardUpdate = boardUpdate,
+                jobCpu = this,
+                jobStorage = storage,
+                searchResults = nativeSearchResults,
+                profitPositionListCopy = profitPositionList,
+                currentBoard = defaultBoard,
+                key = key,
+                originKeyInformation = originKeyInformation,
+                whichTurn = whichTurn,
+                turn = turn,
+                progress = progress,
+                startPointKey = originKeyInformation
+            };
+
+            JobHandle jobHandle = searchMove.Schedule();
+            jobHandles.Add(jobHandle);
+            nativeResults.Add(nativeSearchResults);
         }
+        NativeArray<JobHandle> jobHandlesArray = new NativeArray<JobHandle>(jobHandles.ToArray(), Allocator.Temp);
+        // 全てのジョブが完了するのを待つ
+        JobHandle.CompleteAll(jobHandlesArray);
+
+        // 結果をマージしてクリーンアップ
+        for (int i = 0; i < nativeResults.Count; i++)
+        {
+            var nativeResult = nativeResults[i];
+            foreach (var kvp in nativeResult)
+            {
+                searchResults[kvp.Key.ToString()] = kvp.Value;
+            }
+            nativeResult.Dispose(); // メモリリークを防ぐ
+        }
+
         // 一時保存したデータを返す
         return searchResults;
     }
 
     void EvaluationAssignment(int turn, int progress, int[,] defaultBoard)
     {
+        Dictionary<string, MaxProfitPosition> collection = new Dictionary<string, MaxProfitPosition>(profitPositionList);
+        MaxProfitPosition value;
+
         foreach (string key in profitPositionList.Keys)
         {
-            UpdatePiecePositionCopy(turn, progress, key, defaultBoard);
-            profitPositionList[key].RatingValue = EvaluationFunction(piecePositionCopy, key, profitPositionList[key].SelectedPosition);
+            piecePositionCopy = boardUpdate.UpdatePiecePositionCopy(turn, key, defaultBoard);
+
+            value = collection[key];
+            value.RatingValue = EvaluationFunction(piecePositionCopy, key, profitPositionList[key].SelectedPosition);
+            collection[key] = value; // 評価値を更新
         }
+
+        profitPositionList = collection; // 評価値をprofitPositionListに反映
     }
 
     /// <summary>
@@ -350,119 +357,19 @@ public class CPU : MonoBehaviour
         return BP[checkTarget.y + checkTarget.x * 8] * -whichTurn;
     }
 
-    //引数：現在のターン数、何手目まで探索したか、探索したい枝のkey
-    //keyの要素を順番に取り出しその要素を持つListを作成する・・・⓵
-    //⓵で作ったListをkeyに持つMaxProfitPosition.SelectedPositionを取得しそこに打った場合の盤面を再現する
-    /// <summary>
-    /// 渡されたkeyの盤面を再現する
-    /// </summary>
-    /// <param name="turn">プレイヤーの見ているターン</param>
-    /// <param name="progress">何処まで探索したか</param>
-    /// <param name="key">再現したいkey</param>
-    /// <param name="defaultBoard">プレイヤーの見ている盤面</param>
-    private void UpdatePiecePositionCopy(int turn, int progress, string key, int[,] defaultBoard)
-    {
-        Copy(defaultBoard);
-        for (int i = 0; i <= (profitPositionList[key].Turn - turn); i++)
-        {
-            if (ReturnKeyElement(key, ",").Count <= (turn + i))
-            {
-                Debug.Log("<color=green>" + "keyの要素数が足りない" + "</color>" + (turn + i));
-                continue;
-            }
-            if (ReturnKeyElement(key, ",")[turn + i] == null) continue;
-            string stac = null;
-            for (int j = 0; j <= turn + i; j++)
-            {
-                stac += "," + ReturnKeyElement(key, ",")[j];
-            }
-            if (profitPositionList.ContainsKey(stac))
-            {
-                if (stac.Substring(stac.Count() - 1, 1) == "N")
-                {
-                    stac = stac.Remove(stac.Count() - 2, 2);
-                }
-                if (!(profitPositionList[stac].SelectedPosition.x < 0 && profitPositionList[stac].SelectedPosition.y < 0))
-                {
-                    Arrangement(turn + i, profitPositionList[stac].SelectedPosition);
-                }
-            }
-            else
-            {
-                Debug.Log("違う！");
-            }
-        }
-    }
-
-    private int[,] JustOneUpdate(int[,] defaultBoard, Vector2Int selectedPosition, int player)
-    {
-        int[,] result = new int[8, 8];
-        for (int i = 0; i < defaultBoard.GetLength(0); i++)
-        {
-            for (int j = 0; j < defaultBoard.GetLength(1); j++)
-            {
-                result[i, j] = defaultBoard[i, j];
-            }
-        }
-        result[selectedPosition.y, selectedPosition.x] = player;
-        return result;
-    }
-
-    // ArrangementDirectから帰ってきた情報をまとめて反映する
-    public void Arrangement(int turn, Vector2Int index)
-    {
-        int player = -2 * (turn % 2) + 1;
-        List<Vector2Int> Temporarily = ArrangementDirect(player, index);
-        Assignment(index, player);
-        for (int i = 0; i < Temporarily.Count; i++)
-        {
-            Assignment(Temporarily[i], player);
-        }
-    }
-
-    // ひっくり返す方向と枚数を探索する。
-    public List<Vector2Int> ArrangementDirect(int player, Vector2Int index)
-    {
-        List<Vector2Int> allResults = new List<Vector2Int>();
-        foreach (Vector2Int d in storage.directVector)
-        {
-            List<Vector2Int> candidate = new List<Vector2Int>();
-            Vector2Int now = index + d;
-
-            while (0 <= now.x && now.x < 8 && 0 <= now.y && now.y < 8)
-            {
-                if (piecePositionCopy[now.y, now.x] == 0)
-                {
-                    break;
-                }
-                else if (piecePositionCopy[now.y, now.x] == player)
-                {
-                    allResults.AddRange(candidate);
-                    break;
-                }
-                else if (piecePositionCopy[now.y, now.x] != player)
-                {
-                    candidate.Add(now);
-                }
-                now += d;
-            }
-        }
-        return allResults;
-    }
-
     // 指定された位置に駒を置いた時ひっくり返せる枚数を返す。
-    public int Judge(int turn, Vector2Int selectedPosition)
+    public int Judge(int[,] sourceBoard, int turn, Vector2Int selectedPosition)
     {
         int player = -2 * (turn % 2) + 1;
-        if (piecePositionCopy[selectedPosition.y, selectedPosition.x] != 0)
+        if (sourceBoard[selectedPosition.y, selectedPosition.x] != 0)
         {
             return 0;
         }
 
-        return Direct(player, selectedPosition);
+        return Direct(sourceBoard, player, selectedPosition);
     }
 
-    public int Direct(int player, Vector2Int index)
+    public int Direct(int[,] sourceBoard, int player, Vector2Int index)
     {
         int points = 0;
         foreach (Vector2Int d in storage.directVector)
@@ -471,16 +378,16 @@ public class CPU : MonoBehaviour
             int directionPoints = 0;
             while (0 <= now.x && now.x < 8 && 0 <= now.y && now.y < 8)
             {
-                if (piecePositionCopy[now.y, now.x] == 0)
+                if (sourceBoard[now.y, now.x] == 0)
                 {
                     break;
                 }
-                else if (piecePositionCopy[now.y, now.x] == player)
+                else if (sourceBoard[now.y, now.x] == player)
                 {
                     points += directionPoints;
                     break;
                 }
-                else if (piecePositionCopy[now.y, now.x] != player)
+                else if (sourceBoard[now.y, now.x] != player)
                 {
                     directionPoints++;
                 }
@@ -489,16 +396,6 @@ public class CPU : MonoBehaviour
         }
         // Debug.Log(allResults);
         return points;
-    }
-
-    private void Assignment(int x, int y, int color)
-    {
-        piecePositionCopy[y, x] = color;
-    }
-
-    private void Assignment(Vector2Int location, int color)
-    {
-        Assignment(location.x, location.y, color);
     }
 
     public string ListPrint(IReadOnlyList<int> ints)
@@ -546,7 +443,7 @@ public class CPU : MonoBehaviour
         return result;
     }
 
-    public Dictionary<string, MaxProfitPosition> ReturnProfitPositionList()
+    public Dictionary<string, MaxProfitPosition> GetProfitPositionList()
     {
         return profitPositionList;
     }
