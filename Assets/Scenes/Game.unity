@@ -1765,7 +1765,6 @@ GameObject:
   - component: {fileID: 1518342864}
   - component: {fileID: 1518342863}
   - component: {fileID: 1518342867}
-  - component: {fileID: 1518342869}
   - component: {fileID: 1518342868}
   m_Layer: 0
   m_Name: Main Camera
@@ -1922,18 +1921,6 @@ MonoBehaviour:
   ViewListContent: {fileID: 692076437}
   canvas: {fileID: 541130692}
   constant: 20
---- !u!114 &1518342869
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1518342859}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cc3d366c87ead8b4ebdbf1a8475edbe6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1520166866
 GameObject:
   m_ObjectHideFlags: 0

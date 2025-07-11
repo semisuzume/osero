@@ -8,27 +8,27 @@ using UnityEditor.SceneManagement;
 using UnityEditor.Search;
 using UnityEngine;
 <<<<<<< HEAD:Assets/Script/CPU/CPU.cs
+<<<<<<< HEAD:Assets/Script/CPU/CPU.cs
 using Unity.Collections;
 using Unity.Jobs;
 =======
 using UnityEngine.UIElements;
 >>>>>>> parent of b18a82d (Merge pull request #11 from semisuzume/fixDoNotSelect):Assets/Script/CPU.cs
+=======
+>>>>>>> parent of 1e07daf (一旦保存（未完）):Assets/Script/CPU.cs
 
 /// <summary>
 /// 置ける手の探索と選択
 /// </summary>
 public class CPU : MonoBehaviour
 {
-    // AssighmentとCopyからのみ代入可能
     public int[,] piecePositionCopy = new int[8, 8];
-
     Dictionary<string, MaxProfitPosition> profitPositionList = new Dictionary<string, MaxProfitPosition>();
     Dictionary<string, MaxProfitPosition> searchResults = new Dictionary<string, MaxProfitPosition>();
-
     GameManagement gameManagement;
     BoardManagement boardManagement;
-    BoardUpdate boardUpdate;
     FunctionStorage storage;
+<<<<<<< HEAD:Assets/Script/CPU/CPU.cs
 <<<<<<< HEAD:Assets/Script/CPU/CPU.cs
 
     int difficulty = 2;
@@ -37,14 +37,33 @@ public class CPU : MonoBehaviour
     int difficulty = 2;
     int firstTurn = 0;
 >>>>>>> parent of b18a82d (Merge pull request #11 from semisuzume/fixDoNotSelect):Assets/Script/CPU.cs
+=======
+    int difficulty = 4;
+>>>>>>> parent of 1e07daf (一旦保存（未完）):Assets/Script/CPU.cs
     // Start is called before the first frame update
     void Start()
     {
         gameManagement = GetComponent<GameManagement>();
         boardManagement = GetComponent<BoardManagement>();
-        boardUpdate = GetComponent<BoardUpdate>();
         storage = GetComponent<FunctionStorage>();
         firstTurn = gameManagement.isPlayerFirst ? 1 : 0;
+    }
+
+    /// <summary>
+    /// BordManagementが保持している盤面CPU内でいじる用の盤面にコピーする
+    /// </summary>
+    /// <param name="originalData">元データ</param>
+    public void Copy(int[,] originalData)
+    {
+        for (int i = 0; i < piecePositionCopy.GetLength(0); i++)
+        {
+            string str = "";
+            for (int j = 0; j < piecePositionCopy.GetLength(1); j++)
+            {
+                piecePositionCopy[i, j] = originalData[i, j];
+                str = str + piecePositionCopy[i, j] + " ";
+            }
+        }
     }
 
     /// <summary>
@@ -90,14 +109,24 @@ public class CPU : MonoBehaviour
                 continue;
             }
             for (int i = 0; i < (turn == 0 ? turn : CountThisTurn(turn)) * difficulty + 1; i++)
+<<<<<<< HEAD:Assets/Script/CPU/CPU.cs
             {
 =======
 >>>>>>> parent of b18a82d (Merge pull request #11 from semisuzume/fixDoNotSelect):Assets/Script/CPU.cs
                 keyCode = null;
                 for (int j = 0; j <= i; j++)
+=======
+>>>>>>> parent of 1e07daf (一旦保存（未完）):Assets/Script/CPU.cs
                 {
-                    keyCode += "," + ReturnKeyElement(key, ",")[j];
+                    keyCode = null;
+                    for (int j = 0; j <= i; j++)
+                    {
+                        keyCode += "," + ReturnKeyElement(key, ",")[j];
+                    }
+                    finalResult += profitPositionList[keyCode].RatingValue;
+                    Debug.Log("keyCode: " + keyCode + " finalResult: " + finalResult);
                 }
+<<<<<<< HEAD:Assets/Script/CPU/CPU.cs
 <<<<<<< HEAD:Assets/Script/CPU/CPU.cs
                 finalResult += profitPositionList[keyCode].RatingValue;
                 Debug.Log("keyCode: " + keyCode + " finalResult: " + finalResult);
@@ -105,6 +134,8 @@ public class CPU : MonoBehaviour
                 finalResult += profitPositionList[keyCode].MaxFlipCount;
 >>>>>>> parent of b18a82d (Merge pull request #11 from semisuzume/fixDoNotSelect):Assets/Script/CPU.cs
             }
+=======
+>>>>>>> parent of 1e07daf (一旦保存（未完）):Assets/Script/CPU.cs
             //SubStringされるとき失敗するときがある
             if ((temp.MaxFlipCount < finalResult) || (finalResult == 0 && temp.MaxFlipCount == 0))
             {
@@ -145,10 +176,9 @@ public class CPU : MonoBehaviour
     /// <returns>ｎ+1手目で置ける場所の保存されているDictionary</returns>
     public Dictionary<string, MaxProfitPosition> FindValidMoves(bool isPlayerFirst, int turn, int progress, Dictionary<string, MaxProfitPosition> profitPositionList, int[,] defaultBoard)
     {
+        MaxProfitPosition valueInformation;
         string originKeyInformation;
-        List<JobHandle> jobHandles = new List<JobHandle>();
-        List<NativeHashMap<FixedString512Bytes, MaxProfitPosition>> nativeResults = new List<NativeHashMap<FixedString512Bytes, MaxProfitPosition>>();
-
+        bool DoSkip = true;
         foreach (string key in profitPositionList.Keys) //keyから一つ選択
         {
             int whichTurn = (2 * ((profitPositionList[key].Turn + firstTurn) % 2)) - 1;
@@ -156,10 +186,11 @@ public class CPU : MonoBehaviour
             if (turn + progress <= 1) { }
             else if (ReturnKeyElement(key, ",").Count != (turn == 0 ? turn : CountMyTurn(true, turn)) * difficulty + progress) continue; //探索済みのkeyを弾く
             else { originKeyInformation = key;/*末尾にKeyToSpecifyを追加する*/}
-            NativeHashMap<FixedString512Bytes, MaxProfitPosition> nativeSearchResults = new NativeHashMap<FixedString512Bytes, MaxProfitPosition>(64, Allocator.TempJob);
-
-            SearchMove searchMove = new SearchMove
+            UpdatePiecePositionCopy(turn, progress, key, defaultBoard);// コピー盤面を用意
+            DoSkip = true;
+            for (int i = 0; i < defaultBoard.GetLength(0); i++)
             {
+<<<<<<< HEAD:Assets/Script/CPU/CPU.cs
 <<<<<<< HEAD:Assets/Script/CPU/CPU.cs
                 jobBoardUpdate = boardUpdate,
                 jobCpu = this,
@@ -179,6 +210,8 @@ public class CPU : MonoBehaviour
             jobHandles.Add(jobHandle);
             nativeResults.Add(nativeSearchResults);
 =======
+=======
+>>>>>>> parent of 1e07daf (一旦保存（未完）):Assets/Script/CPU.cs
                 for (int j = 0; j < defaultBoard.GetLength(1); j++)// 64マス全探索
                 {
                     valueInformation = new MaxProfitPosition();
@@ -198,13 +231,17 @@ public class CPU : MonoBehaviour
                         valueInformation.MaxFlipCount = tempCount;
                         valueInformation.SelectedPosition = new Vector2Int(i, j);
                         searchResults.Add(keyInformation, valueInformation);
+<<<<<<< HEAD:Assets/Script/CPU/CPU.cs
                         Debug.Log("<color=purple>" + EvaluationFunction(JustOneUpdate(piecePositionCopy, new Vector2Int(i, j), whichTurn), difficulty, keyInformation, new Vector2Int(i, j)) + "</color>");
+=======
+>>>>>>> parent of 1e07daf (一旦保存（未完）):Assets/Script/CPU.cs
                     }
                 }
             }
             if (DoSkip)
             {
                 searchResults.Add(originKeyInformation + "," + "N", new MaxProfitPosition() { MaxFlipCount = 0, Turn = turn + progress });
+<<<<<<< HEAD:Assets/Script/CPU/CPU.cs
             }
 >>>>>>> parent of b18a82d (Merge pull request #11 from semisuzume/fixDoNotSelect):Assets/Script/CPU.cs
         }
@@ -219,10 +256,10 @@ public class CPU : MonoBehaviour
             foreach (var kvp in nativeResult)
             {
                 searchResults[kvp.Key.ToString()] = kvp.Value;
+=======
+>>>>>>> parent of 1e07daf (一旦保存（未完）):Assets/Script/CPU.cs
             }
-            nativeResult.Dispose(); // メモリリークを防ぐ
         }
-
         // 一時保存したデータを返す
         return searchResults;
     }
@@ -230,19 +267,11 @@ public class CPU : MonoBehaviour
 <<<<<<< HEAD:Assets/Script/CPU/CPU.cs
     void EvaluationAssignment(int turn, int progress, int[,] defaultBoard)
     {
-        Dictionary<string, MaxProfitPosition> collection = new Dictionary<string, MaxProfitPosition>(profitPositionList);
-        MaxProfitPosition value;
-
         foreach (string key in profitPositionList.Keys)
         {
-            piecePositionCopy = boardUpdate.UpdatePiecePositionCopy(turn, key, defaultBoard);
-
-            value = collection[key];
-            value.RatingValue = EvaluationFunction(piecePositionCopy, key, profitPositionList[key].SelectedPosition);
-            collection[key] = value; // 評価値を更新
+            UpdatePiecePositionCopy(turn, progress, key, defaultBoard);
+            profitPositionList[key].RatingValue = EvaluationFunction(piecePositionCopy, key, profitPositionList[key].SelectedPosition);
         }
-
-        profitPositionList = collection; // 評価値をprofitPositionListに反映
     }
 
 =======
@@ -428,7 +457,10 @@ public class CPU : MonoBehaviour
     }
 
 <<<<<<< HEAD:Assets/Script/CPU/CPU.cs
+<<<<<<< HEAD:Assets/Script/CPU/CPU.cs
 =======
+=======
+>>>>>>> parent of 1e07daf (一旦保存（未完）):Assets/Script/CPU.cs
     //引数：現在のターン数、何手目まで探索したか、探索したい枝のkey
     //keyの要素を順番に取り出しその要素を持つListを作成する・・・⓵
     //⓵で作ったListをkeyに持つMaxProfitPosition.SelectedPositionを取得しそこに打った場合の盤面を再現する
@@ -444,14 +476,24 @@ public class CPU : MonoBehaviour
         Copy(defaultBoard);
         for (int i = 0; i <= (profitPositionList[key].Turn - turn); i++)
         {
+<<<<<<< HEAD:Assets/Script/CPU/CPU.cs
             if (ReturnKeyElement(key, ",").Count <= (turn + i - firstTurn))
+=======
+            if (ReturnKeyElement(key, ",").Count <= (turn + i))
+>>>>>>> parent of 1e07daf (一旦保存（未完）):Assets/Script/CPU.cs
             {
                 Debug.Log("<color=green>" + "keyの要素数が足りない" + "</color>" + (turn + i));
                 continue;
             }
+<<<<<<< HEAD:Assets/Script/CPU/CPU.cs
             if (ReturnKeyElement(key, ",")[turn + i - firstTurn] == null) continue;
             string stac = null;
             for (int j = 0; j <= turn + i - firstTurn; j++)
+=======
+            if (ReturnKeyElement(key, ",")[turn + i] == null) continue;
+            string stac = null;
+            for (int j = 0; j <= turn + i; j++)
+>>>>>>> parent of 1e07daf (一旦保存（未完）):Assets/Script/CPU.cs
             {
                 stac += "," + ReturnKeyElement(key, ",")[j];
             }
@@ -489,6 +531,7 @@ public class CPU : MonoBehaviour
 
     // ArrangementDirectから帰ってきた情報をまとめて反映する
     public void Arrangement(int turn, Vector2Int index)
+<<<<<<< HEAD:Assets/Script/CPU/CPU.cs
     {
         int player = -2 * (turn % 2) + 1;
         List<Vector2Int> Temporarily = ArrangementDirect(player, index);
@@ -532,17 +575,61 @@ public class CPU : MonoBehaviour
 >>>>>>> parent of b18a82d (Merge pull request #11 from semisuzume/fixDoNotSelect):Assets/Script/CPU.cs
     // 指定された位置に駒を置いた時ひっくり返せる枚数を返す。
     public int Judge(int[,] sourceBoard, int turn, Vector2Int selectedPosition)
+=======
+>>>>>>> parent of 1e07daf (一旦保存（未完）):Assets/Script/CPU.cs
     {
         int player = -2 * (turn % 2) + 1;
-        if (sourceBoard[selectedPosition.y, selectedPosition.x] != 0)
+        List<Vector2Int> Temporarily = ArrangementDirect(player, index);
+        Assignment(index, player);
+        for (int i = 0; i < Temporarily.Count; i++)
+        {
+            Assignment(Temporarily[i], player);
+        }
+    }
+
+    // ひっくり返す方向と枚数を探索する。
+    public List<Vector2Int> ArrangementDirect(int player, Vector2Int index)
+    {
+        List<Vector2Int> allResults = new List<Vector2Int>();
+        foreach (Vector2Int d in storage.directVector)
+        {
+            List<Vector2Int> candidate = new List<Vector2Int>();
+            Vector2Int now = index + d;
+
+            while (0 <= now.x && now.x < 8 && 0 <= now.y && now.y < 8)
+            {
+                if (piecePositionCopy[now.y, now.x] == 0)
+                {
+                    break;
+                }
+                else if (piecePositionCopy[now.y, now.x] == player)
+                {
+                    allResults.AddRange(candidate);
+                    break;
+                }
+                else if (piecePositionCopy[now.y, now.x] != player)
+                {
+                    candidate.Add(now);
+                }
+                now += d;
+            }
+        }
+        return allResults;
+    }
+
+    // 指定された位置に駒を置いた時ひっくり返せる枚数を返す。
+    public int Judge(int turn, Vector2Int selectedPosition)
+    {
+        int player = -2 * (turn % 2) + 1;
+        if (piecePositionCopy[selectedPosition.y, selectedPosition.x] != 0)
         {
             return 0;
         }
 
-        return Direct(sourceBoard, player, selectedPosition);
+        return Direct(player, selectedPosition);
     }
 
-    public int Direct(int[,] sourceBoard, int player, Vector2Int index)
+    public int Direct(int player, Vector2Int index)
     {
         int points = 0;
         foreach (Vector2Int d in storage.directVector)
@@ -551,16 +638,16 @@ public class CPU : MonoBehaviour
             int directionPoints = 0;
             while (0 <= now.x && now.x < 8 && 0 <= now.y && now.y < 8)
             {
-                if (sourceBoard[now.y, now.x] == 0)
+                if (piecePositionCopy[now.y, now.x] == 0)
                 {
                     break;
                 }
-                else if (sourceBoard[now.y, now.x] == player)
+                else if (piecePositionCopy[now.y, now.x] == player)
                 {
                     points += directionPoints;
                     break;
                 }
-                else if (sourceBoard[now.y, now.x] != player)
+                else if (piecePositionCopy[now.y, now.x] != player)
                 {
                     directionPoints++;
                 }
@@ -569,6 +656,16 @@ public class CPU : MonoBehaviour
         }
         // Debug.Log(allResults);
         return points;
+    }
+
+    private void Assignment(int x, int y, int color)
+    {
+        piecePositionCopy[y, x] = color;
+    }
+
+    private void Assignment(Vector2Int location, int color)
+    {
+        Assignment(location.x, location.y, color);
     }
 
     public string ListPrint(IReadOnlyList<int> ints)
@@ -604,7 +701,7 @@ public class CPU : MonoBehaviour
         return result;
     }
 
-    public Dictionary<string, MaxProfitPosition> GetProfitPositionList()
+    public Dictionary<string, MaxProfitPosition> ReturnProfitPositionList()
     {
         return profitPositionList;
     }

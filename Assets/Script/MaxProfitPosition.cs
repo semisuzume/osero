@@ -1,11 +1,10 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
-public struct MaxProfitPosition : IEquatable<MaxProfitPosition>
+public class MaxProfitPosition
 {
+<<<<<<< HEAD
 <<<<<<< HEAD
     public FlexibleVector2 SelectedPosition; // 選択された位置を表す（x, y座標）
     public int Turn;
@@ -30,6 +29,8 @@ public struct MaxProfitPosition : IEquatable<MaxProfitPosition>
         return HashCode.Combine(SelectedPosition, Turn, MaxFlipCount, StaticStoneCount, RatingValue);
     }
 =======
+=======
+>>>>>>> parent of 1e07daf (一旦保存（未完）)
     public bool[,] ConfirmedStone { get; set; } = new bool[8, 8];
     public Vector2Int SelectedPosition { get; set; }
     public int Turn { get; set; }
@@ -38,5 +39,9 @@ public struct MaxProfitPosition : IEquatable<MaxProfitPosition>
     /// 確定石
     /// </summary>
     public int StaticStoneCount { get; set; }
+<<<<<<< HEAD
 >>>>>>> parent of b18a82d (Merge pull request #11 from semisuzume/fixDoNotSelect)
+=======
+    public int RatingValue { get; set; }
+>>>>>>> parent of 1e07daf (一旦保存（未完）)
 }
