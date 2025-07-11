@@ -25,7 +25,7 @@ public class GameManagement : MonoBehaviour
         Result
     }
     State state = State.Init;
-    private bool DebugMode = true;
+    private bool DebugMode = false;
     private BoardManagement boardManagement;
     private CPU cpu;
     private DebugScript debugScript;
