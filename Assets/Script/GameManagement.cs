@@ -30,7 +30,7 @@ public class GameManagement : MonoBehaviour
     private CPU cpu;
     private DebugScript debugScript;
     public Vector2Int cellpos;
-    private int playerTurn = 0;
+    private int playerTurn;
     private int blockageCounter = 0;
     private bool callConfirmation;
     public bool isPlayerFirst = true;

@@ -6,6 +6,7 @@ using UnityEngine;
 [System.Serializable]
 public struct MaxProfitPosition : IEquatable<MaxProfitPosition>
 {
+<<<<<<< HEAD
     public FlexibleVector2 SelectedPosition; // 選択された位置を表す（x, y座標）
     public int Turn;
     public int MaxFlipCount;
@@ -28,4 +29,14 @@ public struct MaxProfitPosition : IEquatable<MaxProfitPosition>
     {
         return HashCode.Combine(SelectedPosition, Turn, MaxFlipCount, StaticStoneCount, RatingValue);
     }
+=======
+    public bool[,] ConfirmedStone { get; set; } = new bool[8, 8];
+    public Vector2Int SelectedPosition { get; set; }
+    public int Turn { get; set; }
+    public int MaxFlipCount { get; set; }
+    /// <summary>
+    /// 確定石
+    /// </summary>
+    public int StaticStoneCount { get; set; }
+>>>>>>> parent of b18a82d (Merge pull request #11 from semisuzume/fixDoNotSelect)
 }
